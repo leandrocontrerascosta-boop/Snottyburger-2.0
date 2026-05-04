@@ -34,7 +34,6 @@ export function CartDrawer({
   const [customerName, setCustomerName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
 
   const normalizedName = useMemo(() => customerName.trim(), [customerName]);
   const normalizedPhone = useMemo(() => contactPhone.replace(/\D/g, ""), [contactPhone]);
@@ -178,12 +177,6 @@ export function CartDrawer({
         </div>
 
         <div className="space-y-3 border-t border-[var(--line)] bg-[var(--surface)] px-3 py-3 sm:space-y-4 sm:px-5 sm:py-5">
-          {checkoutMessage ? (
-            <div className="rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-              {checkoutMessage}
-            </div>
-          ) : null}
-
           <div className="space-y-2 text-xs text-[var(--muted)] sm:space-y-3 sm:text-sm">
             <div className="flex items-center justify-between">
               <span>Total de items</span>
@@ -205,9 +198,6 @@ export function CartDrawer({
               value={customerName}
               onChange={(event) => {
                 setCustomerName(event.target.value);
-                if (checkoutMessage) {
-                  setCheckoutMessage(null);
-                }
               }}
               placeholder="Nombre del cliente"
               className="w-full rounded-[12px] border border-[var(--line)] bg-white px-3 py-2.5 text-xs outline-none transition focus:border-[var(--brand)] sm:rounded-[14px] sm:px-4 sm:py-3 sm:text-sm"
@@ -219,9 +209,6 @@ export function CartDrawer({
               value={contactPhone}
               onChange={(event) => {
                 setContactPhone(event.target.value);
-                if (checkoutMessage) {
-                  setCheckoutMessage(null);
-                }
               }}
               inputMode="tel"
               placeholder="3815555555"
@@ -295,11 +282,6 @@ export function CartDrawer({
           window.open(whatsappLink, "_blank", "noopener,noreferrer");
           clearCart();
           setCheckoutOpen(false);
-          setCheckoutMessage(
-            payload.fulfillmentMethod === "pickup"
-              ? `Pedido confirmado para retirar en ${selectedLocation.name} pagando con ${translatePaymentMethod(payload.paymentMethod)}.`
-              : `Pedido confirmado con envio a domicilio por ${translatePaymentMethod(payload.paymentMethod)}. Total ${formatCurrency(payload.total)}.`,
-          );
         }}
       />
     </>
