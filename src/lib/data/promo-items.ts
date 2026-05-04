@@ -18,8 +18,11 @@ type PromoItemRow = {
   status: "active" | "paused";
 };
 
+const EXCLUDED_PROMO_TITLES = new Set(["Lunch Week", "Noche Snotty"]);
+
 export async function fetchPromoItems(options?: { activeOnly?: boolean }): Promise<PromoAdmin[]> {
-  const fallback = options?.activeOnly ? initialPromos.filter((item) => item.status === "active") : initialPromos;
+  const filteredFallback = initialPromos.filter((item) => !EXCLUDED_PROMO_TITLES.has(item.title));
+  const fallback = options?.activeOnly ? filteredFallback.filter((item) => item.status === "active") : filteredFallback;
   const supabase = createSupabasePublicClient();
 
   if (!supabase) {
@@ -41,7 +44,9 @@ export async function fetchPromoItems(options?: { activeOnly?: boolean }): Promi
     return fallback;
   }
 
-  const mapped = data.map(mapPromoItemRow);
+  const mapped = data
+    .map(mapPromoItemRow)
+    .filter((item) => !EXCLUDED_PROMO_TITLES.has(item.title));
   return mapped.length > 0 ? mapped : fallback;
 }
 

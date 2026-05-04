@@ -4,11 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { SkeletonBlock } from "@/components/ui/skeleton-block";
 
-type HeroBannerProps = {
-  onPrimaryCta: () => void;
-};
-
-export function HeroBanner({ onPrimaryCta }: HeroBannerProps) {
+export function HeroBanner() {
   const [loaded, setLoaded] = useState(false);
 
   return (
@@ -30,13 +26,6 @@ export function HeroBanner({ onPrimaryCta }: HeroBannerProps) {
           <h2 className="mt-1 max-w-[420px] text-xl font-semibold tracking-[-0.03em] text-white sm:text-2xl lg:text-3xl">
             Mordida brutal. Cero espera.
           </h2>
-          <button
-            type="button"
-            onClick={onPrimaryCta}
-            className="tap-target mt-3 inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#281310] transition hover:bg-[#fff2e2] sm:mt-4 sm:px-5"
-          >
-            Pedir ahora
-          </button>
         </div>
       </div>
     </section>

@@ -117,13 +117,6 @@ function OrderScreen({
     };
   }, [locationSheetOpen, mobileCartOpen, selectedProduct, selectedPromoProduct]);
 
-  function scrollToFirstCategory() {
-    const el = document.getElementById("category-burgers") ?? document.getElementById("category-drinks");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }
-
   return (
     <div className="page-shell overflow-x-hidden pb-24 lg:pb-0">
       <LocationSheet
@@ -149,7 +142,7 @@ function OrderScreen({
           </div>
         ) : null}
 
-        <HeroBanner onPrimaryCta={scrollToFirstCategory} />
+        <HeroBanner />
         <PromoStrip promo={promoBanner} />
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_350px] lg:items-start">

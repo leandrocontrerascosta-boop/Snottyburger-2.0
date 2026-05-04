@@ -58,7 +58,6 @@ export function CartDrawer({
         <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-3.5 sm:px-5 sm:py-5">
           <div>
             <h2 className="text-xl font-semibold tracking-[-0.04em] text-[var(--foreground)] sm:text-2xl">Tu pedido ({items.length})</h2>
-            <p className="mt-0.5 text-xs text-[var(--muted)] sm:mt-1 sm:text-sm">Retiro base desde {selectedLocation.name}</p>
           </div>
           <button type="button" onClick={onClose} className="text-3xl text-[var(--muted)] transition hover:text-[var(--foreground)] lg:hidden">
             ×
@@ -217,7 +216,7 @@ export function CartDrawer({
             {!phoneIsValid && contactPhone ? (
               <p className="text-xs font-medium text-[var(--brand)] sm:text-sm">Ingresa un telefono valido de al menos 8 digitos.</p>
             ) : null}
-            <p className="text-xs text-[var(--muted)] sm:text-sm">El local seleccionado es {selectedLocation.name}. Podras elegir retiro o envio en el siguiente paso.</p>
+            <p className="text-xs text-[var(--muted)] sm:text-sm">Podras elegir retiro o envio en el siguiente paso.</p>
             <button
               type="button"
               onClick={() => {

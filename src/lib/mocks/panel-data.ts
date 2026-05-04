@@ -76,32 +76,7 @@ export const initialStoryContent: StoryContent = {
   updatedAt: "2026-04-26T15:32:00.000Z",
 };
 
-export const initialPromos: PromoAdmin[] = [
-  {
-    id: "promo-lunch-week",
-    title: "Lunch Week",
-    description: "Burger simple + bebida en horario de almuerzo.",
-    image: "/images/order/locura.webp",
-    simplePrice: 9900,
-    doublePrice: 13400,
-    isCombo: true,
-    durationDays: 14,
-    customizationPolicy: "observation-only",
-    status: "active",
-  },
-  {
-    id: "promo-night-snotty",
-    title: "Noche Snotty",
-    description: "15% off en Snotty para pedidos online.",
-    image: "/images/order/snotty.webp",
-    simplePrice: 8400,
-    doublePrice: 11800,
-    isCombo: false,
-    durationDays: 7,
-    customizationPolicy: "extras",
-    status: "paused",
-  },
-];
+export const initialPromos: PromoAdmin[] = [];
 
 export const initialSales: SaleRecord[] = [
   {

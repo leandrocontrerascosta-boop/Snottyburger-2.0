@@ -36,7 +36,7 @@ export function DiscountPromoRow({ deals, productsById, onSelectProduct, onSelec
       <div className="px-1 text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--brand)]">Top de la semana</p>
         <h2 className="text-[2rem] font-semibold tracking-[-0.05em] text-[var(--foreground)] sm:text-4xl md:text-5xl">Destacados</h2>
-        <p className="mx-auto max-w-xl text-[13px] leading-6 text-[var(--muted)] sm:text-sm">Combos y descuentos activos para convertir miradas en pedidos.</p>
+        <p className="mx-auto max-w-xl text-[13px] leading-6 text-[var(--muted)] sm:text-sm">Combos y descuentos activos pensados para vos.</p>
       </div>
 
       {linkWarning ? (

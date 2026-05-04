@@ -25,7 +25,7 @@ export function OrderHeader({ location, itemCount, canOrder, onOpenLocation, onO
 
         <div className="flex items-center justify-center">
           <Link href="/" className="display-font text-[1.6rem] uppercase leading-none text-[var(--brand)] transition hover:text-[var(--brand-dark)] sm:text-[1.9rem] md:text-[2.6rem]">
-            Snottyburger
+            SNOTTYBURGERS
           </Link>
         </div>
 
