@@ -11,7 +11,7 @@ import {
   promoBanner,
 } from "@/lib/order/catalog";
 import type { DeliveryRate } from "@/lib/types/delivery";
-import type { PromoAdmin, SaleRecord } from "@/lib/types/panel";
+import type { DrinkItemAdmin, MenuItemAdmin, PromoAdmin, SaleRecord } from "@/lib/types/panel";
 import type { ModifierGroup, Product } from "@/lib/types/order";
 import { CartProvider, useCart } from "@/lib/store/cart-store";
 import { useStoreAvailability } from "@/lib/store/use-store-availability";

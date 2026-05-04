@@ -150,7 +150,7 @@ export function getPromoProductId(promoId: string) {
 export function buildPromoDeals(promos: PromoAdmin[], products: Product[]): PromoDeal[] {
   const productIds = new Set(products.map((product) => product.id));
 
-  const promoDealsFromAdmin =
+  const promoDealsFromAdmin: PromoDeal[] =
     promos.length === 0
       ? (() => {
           return promoDeals.filter((deal) => deal.productId && productIds.has(deal.productId));
@@ -169,7 +169,7 @@ export function buildPromoDeals(promos: PromoAdmin[], products: Product[]): Prom
             originalPrice: promo.doublePrice > promo.simplePrice ? promo.doublePrice : undefined,
           }));
 
-  const autoDiscountDeals = products
+  const autoDiscountDeals: PromoDeal[] = products
     .filter((product) => product.categoryId === "burgers" && product.discountPercent && product.originalPrice)
     .map((product) => ({
       id: `auto-discount-${product.id}`,
@@ -183,7 +183,7 @@ export function buildPromoDeals(promos: PromoAdmin[], products: Product[]): Prom
       originalPrice: product.originalPrice,
     }));
 
-  const merged = [...autoDiscountDeals, ...promoDealsFromAdmin];
+  const merged: PromoDeal[] = [...autoDiscountDeals, ...promoDealsFromAdmin];
   const deduped = new Map<string, PromoDeal>();
   for (const deal of merged) {
     const key = deal.productId ?? deal.promoProductId ?? deal.id;
