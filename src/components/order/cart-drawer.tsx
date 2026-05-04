@@ -370,10 +370,27 @@ function buildWhatsAppOrderLink({ allProducts, items, subtotal, selectedLocation
     ? `https://www.google.com/maps/search/?api=1&query=${payload.deliveryAddress.coordinates.lat},${payload.deliveryAddress.coordinates.lng}`
     : "N/A";
 
+  const emoji = {
+    alert: "\uD83D\uDCE2",
+    customer: "\uD83D\uDC64",
+    phone: "\uD83D\uDCDE",
+    address: "\uD83D\uDCCD",
+    delivery: "\uD83D\uDE9A",
+    payment: "\uD83D\uDCB3",
+    cash: "\uD83D\uDCB5",
+    change: "\uD83D\uDCB8",
+    store: "\uD83C\uDFE0",
+    detail: "\uD83D\uDCCB",
+    total: "\uD83D\uDCB0",
+    products: "\uD83D\uDCE6",
+    shipping: "\uD83D\uDE9B",
+    maps: "\uD83D\uDCCC",
+  } as const;
+
   const cashLines = payload.paymentMethod === "cash"
     ? payload.cashPaymentAmount && payload.changeAmount !== undefined
-      ? [`💵 Pago con: ${formatCurrency(payload.cashPaymentAmount)}`, `🪙 Vuelto: ${formatCurrency(payload.changeAmount)}`]
-      : ["💵 Pago con: efectivo exacto", "🪙 Vuelto: no requiere"]
+      ? [`${emoji.cash} Pago con: ${formatCurrency(payload.cashPaymentAmount)}`, `${emoji.change} Vuelto: ${formatCurrency(payload.changeAmount)}`]
+      : [`${emoji.cash} Pago con: efectivo exacto`, `${emoji.change} Vuelto: no requiere`]
     : [];
 
   const addressLine =
@@ -382,23 +399,23 @@ function buildWhatsAppOrderLink({ allProducts, items, subtotal, selectedLocation
       : `${selectedLocation.address}, ${selectedLocation.area}`;
 
   const message = [
-    "📢 *Nuevo pedido*",
+    `${emoji.alert} *Nuevo pedido*`,
     "",
-    `👤 Cliente: ${payload.customerName}`,
-    `📞 Tel: ${payload.contactPhone}`,
-    `📍 Direccion: ${addressLine}`,
-    `🚚 Entrega: ${fulfillmentLabel}`,
-    `💳 Pago: ${paymentLabel.toLowerCase()}`,
+    `${emoji.customer} Cliente: ${payload.customerName}`,
+    `${emoji.phone} Tel: ${payload.contactPhone}`,
+    `${emoji.address} Direccion: ${addressLine}`,
+    `${emoji.delivery} Entrega: ${fulfillmentLabel}`,
+    `${emoji.payment} Pago: ${paymentLabel.toLowerCase()}`,
     ...cashLines,
-    `🏬 Local: ${selectedLocation.name} (${selectedLocation.address})`,
+    `${emoji.store} Local: ${selectedLocation.name} (${selectedLocation.address})`,
     "",
-    "🛒 *Detalle:*",
+    `${emoji.detail} *Detalle:*`,
     itemsBlock,
     "",
-    `💰 *Total:* ${formatCurrency(payload.total)}`,
-    `🧾 Productos: ${formatCurrency(subtotal)}`,
-    `🚛 Envio: ${formatCurrency(deliveryCost)}`,
-    payload.fulfillmentMethod === "delivery" ? `🗺️ Maps: ${mapsLink}` : "",
+    `${emoji.total} *Total:* ${formatCurrency(payload.total)}`,
+    `${emoji.products} Productos: ${formatCurrency(subtotal)}`,
+    `${emoji.shipping} Envio: ${formatCurrency(deliveryCost)}`,
+    payload.fulfillmentMethod === "delivery" ? `${emoji.maps} Maps: ${mapsLink}` : "",
   ]
     .filter((line) => line !== "")
     .join("\n");
