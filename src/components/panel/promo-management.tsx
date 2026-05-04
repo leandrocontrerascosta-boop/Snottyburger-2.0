@@ -123,14 +123,21 @@ export function PromoManagement({
       <div className="rounded-2xl border border-[var(--line)] bg-white/60 p-3">
         <button
           type="button"
-          onClick={() => setIsCreateOpen((prev) => !prev)}
+          onClick={() => setIsCreateOpen(true)}
           className="w-full rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-left text-sm font-semibold transition hover:bg-[var(--surface-strong)]"
         >
-          {isCreateOpen ? "Ocultar alta de promo" : "Agregar promo"}
+          Agregar promo
         </button>
+      </div>
 
-        {isCreateOpen ? (
-          <form onSubmit={submitPromo} className="mt-3 grid gap-3 rounded-2xl border border-[var(--line)] bg-white p-4 md:grid-cols-2">
+      {isCreateOpen ? (
+        <div className="fixed inset-0 z-40 overflow-y-auto bg-black/45 p-3 sm:p-4" onClick={() => { setIsCreateOpen(false); setDraft(emptyPromo); }}>
+          <div className="mx-auto my-6 w-full max-w-3xl rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--shadow)] sm:rounded-3xl sm:p-5 md:p-6" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold tracking-[-0.02em] sm:text-xl">Agregar promo</h3>
+              <button type="button" onClick={() => { setIsCreateOpen(false); setDraft(emptyPromo); }} className="rounded-full border border-[var(--line)] px-3 py-1 text-sm font-semibold">Cerrar</button>
+            </div>
+            <form onSubmit={submitPromo} className="mt-4 grid max-h-[calc(100vh-180px)] gap-3 overflow-y-auto pr-1 md:grid-cols-2">
             <label className="space-y-1 text-sm font-medium md:col-span-2">
               Nombre promo
               <input
@@ -245,17 +252,19 @@ export function PromoManagement({
               />
             </label>
 
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 flex flex-wrap gap-2">
               <button
                 type="submit"
                 className="rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-dark)]"
               >
                 Guardar promo
               </button>
+              <button type="button" onClick={() => { setIsCreateOpen(false); setDraft(emptyPromo); }} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--surface-strong)]">Cancelar</button>
             </div>
           </form>
-        ) : null}
-      </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="space-y-3">
         {promos.map((promo) => (

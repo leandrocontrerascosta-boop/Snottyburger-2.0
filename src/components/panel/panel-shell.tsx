@@ -2,14 +2,12 @@
 
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import {
-  initialPromos,
   initialSalesFilters,
-  initialStoryContent,
 } from "@/lib/mocks/panel-data";
 import { DeliveryRatesManagement } from "@/components/panel/delivery-rates-management";
 import type { DeliveryRate } from "@/lib/types/delivery";
 import { ExtrasManagement, type ExtraDraft } from "@/components/panel/extras-management";
-import type { DrinkItemAdmin, EntityStatus, ExtraItemAdmin, MenuItemAdmin, PromoAdmin, SaleRecord } from "@/lib/types/panel";
+import type { DrinkItemAdmin, EntityStatus, ExtraItemAdmin, MenuItemAdmin, PromoAdmin, SaleRecord, StoryContent } from "@/lib/types/panel";
 import { DrinkManagement, type DrinkDraft } from "@/components/panel/drink-management";
 import { MetricsCenter } from "@/components/panel/metrics-center";
 import { MenuManagement, type MenuItemDraft } from "@/components/panel/menu-management";
@@ -39,6 +37,7 @@ type PanelShellProps = {
   initialMenuItems: MenuItemAdmin[];
   initialPromos: PromoAdmin[];
   initialSalesRecords: SaleRecord[];
+  initialStory: StoryContent;
 };
 
 export function PanelShell({
@@ -48,6 +47,7 @@ export function PanelShell({
   initialMenuItems,
   initialPromos,
   initialSalesRecords,
+  initialStory,
 }: PanelShellProps) {
   useEffect(() => {
     document.body.style.overflow = "";
@@ -59,7 +59,7 @@ export function PanelShell({
   const [menuItems, setMenuItems] = useState(initialMenuItems);
   const [extraItems, setExtraItems] = useState(initialExtraItems);
   const [drinkItems, setDrinkItems] = useState(initialDrinkItems);
-  const [story, setStory] = useState(initialStoryContent);
+  const [story, setStory] = useState(initialStory);
   const [promos, setPromos] = useState(initialPromos);
   const [salesRecords] = useState(initialSalesRecords);
   const [salesFilters, setSalesFilters] = useState(initialSalesFilters);
@@ -352,7 +352,23 @@ export function PanelShell({
           />
         ) : null}
 
-        {activeTab === "story" ? <StoryEditor story={story} onSaveStory={setStory} /> : null}
+        {activeTab === "story" ? (
+          <StoryEditor
+            story={story}
+            onSaveStory={async (nextStory) => {
+              setStory(nextStory);
+              try {
+                await fetch("/api/admin/story", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ title: nextStory.title, body: nextStory.body }),
+                });
+              } catch (error) {
+                console.error("No se pudo guardar la historia", error);
+              }
+            }}
+          />
+        ) : null}
 
         {activeTab === "promos" ? (
           <PromoManagement

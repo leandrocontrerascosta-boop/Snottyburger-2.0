@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { fetchBurgerModifierGroups } from "@/lib/data/burger-modifier-groups";
 import { fetchMenuItems } from "@/lib/data/menu-items";
+import { fetchStory } from "@/lib/data/story";
 import { buildBurgerProductsWithModifiers, locations } from "@/lib/order/catalog";
 import { HomeFooter } from "@/components/home/home-footer";
 import { HomeGallery } from "@/components/home/home-gallery";
@@ -14,9 +15,10 @@ import { HomeTextMenu } from "@/components/home/home-text-menu";
 import { HomeVideoBlock } from "@/components/home/home-video-block";
 
 export default async function HomePage() {
-  const [menuItems, modifierGroups] = await Promise.all([
+  const [menuItems, modifierGroups, story] = await Promise.all([
     fetchMenuItems({ activeOnly: true }),
     fetchBurgerModifierGroups(),
+    fetchStory(),
   ]);
   const burgers = buildBurgerProductsWithModifiers(menuItems, modifierGroups);
 
@@ -31,7 +33,7 @@ export default async function HomePage() {
             <HomeVideoBlock />
           </div>
           <HomeTextMenu burgers={burgers} />
-          <HomeStory />
+          <HomeStory title={story.title} body={story.body} />
           <HomeGallery />
         </div>
 

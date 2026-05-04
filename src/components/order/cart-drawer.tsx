@@ -279,7 +279,7 @@ export function CartDrawer({
             payload,
           });
 
-          window.open(whatsappLink, "_blank", "noopener,noreferrer");
+          window.location.href = whatsappLink;
           clearCart();
           setCheckoutOpen(false);
         }}
@@ -356,12 +356,9 @@ function buildWhatsAppOrderLink({ allProducts, items, subtotal, selectedLocation
     alert: "📢",
     customer: "👤",
     phone: "📞",
-    address: "📍",
     delivery: "🚚",
     payment: "💳",
     cash: "💵",
-    change: "💸",
-    store: "🏠",
     detail: "📋",
     total: "💰",
     products: "📦",
@@ -369,38 +366,45 @@ function buildWhatsAppOrderLink({ allProducts, items, subtotal, selectedLocation
     maps: "📌",
   } as const;
 
-  const cashLines = payload.paymentMethod === "cash"
-    ? payload.cashPaymentAmount && payload.changeAmount !== undefined
-      ? [`${emoji.cash} Pago con: ${formatCurrency(payload.cashPaymentAmount)}`, `${emoji.change} Vuelto: ${formatCurrency(payload.changeAmount)}`]
-      : [`${emoji.cash} Pago con: efectivo exacto`, `${emoji.change} Vuelto: no requiere`]
-    : [];
-
-  const addressLine =
-    payload.fulfillmentMethod === "delivery" && payload.deliveryAddress
-      ? payload.deliveryAddress.label
-      : `${selectedLocation.address}, ${selectedLocation.area}`;
-
-  const message = [
-    `${emoji.alert} *Nuevo pedido*`,
-    "",
+  const messageParts: string[] = [
+    `${emoji.alert} Nuevo pedido`,
+    ``,
     `${emoji.customer} Cliente: ${payload.customerName}`,
     `${emoji.phone} Tel: ${payload.contactPhone}`,
-    `${emoji.address} Direccion: ${addressLine}`,
+    ``,
     `${emoji.delivery} Entrega: ${fulfillmentLabel}`,
+    ``,
     `${emoji.payment} Pago: ${paymentLabel.toLowerCase()}`,
-    ...cashLines,
-    `${emoji.store} Local: ${selectedLocation.name} (${selectedLocation.address})`,
-    "",
-    `${emoji.detail} *Detalle:*`,
-    itemsBlock,
-    "",
-    `${emoji.total} *Total:* ${formatCurrency(payload.total)}`,
-    `${emoji.products} Productos: ${formatCurrency(subtotal)}`,
-    `${emoji.shipping} Envio: ${formatCurrency(deliveryCost)}`,
-    payload.fulfillmentMethod === "delivery" ? `${emoji.maps} Maps: ${mapsLink}` : "",
-  ]
-    .filter((line) => line !== "")
-    .join("\n");
+  ];
+
+  if (payload.paymentMethod === "cash" && payload.cashPaymentAmount && payload.changeAmount !== undefined) {
+    messageParts.push(`${emoji.cash} Pago con: ${formatCurrency(payload.cashPaymentAmount)}`);
+    messageParts.push(`      Vuelto: ${formatCurrency(payload.changeAmount)}`);
+  }
+
+  messageParts.push(``, `${emoji.detail} Detalle:`, ``, itemsBlock, ``);
+
+  messageParts.push(`${emoji.payment} Pago: ${paymentLabel.toUpperCase()}`);
+  messageParts.push(``);
+  messageParts.push(`${emoji.total} Total: ${formatCurrency(payload.total)}`);
+  messageParts.push(`${emoji.products} Productos: ${formatCurrency(subtotal)}`);
+
+  if (payload.fulfillmentMethod === "delivery") {
+    messageParts.push(`${emoji.shipping} Envio: ${formatCurrency(deliveryCost)}`);
+  }
+
+  if (payload.paymentMethod === "cash" && payload.cashPaymentAmount && payload.changeAmount !== undefined) {
+    messageParts.push(``);
+    messageParts.push(`${emoji.cash} Pago con: ${formatCurrency(payload.cashPaymentAmount)}`);
+    messageParts.push(`      VUELTO: ${formatCurrency(payload.changeAmount)}`);
+  }
+
+  if (payload.fulfillmentMethod === "delivery" && payload.deliveryAddress) {
+    messageParts.push(``);
+    messageParts.push(`${emoji.maps} Maps: ${mapsLink}`);
+  }
+
+  const message = messageParts.join("\n");
 
   return `https://wa.me/${destinationPhone}?text=${encodeURIComponent(message)}`;
 }

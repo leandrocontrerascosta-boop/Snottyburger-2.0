@@ -8,15 +8,17 @@ import { fetchExtraItems } from "@/lib/data/extra-items";
 import { fetchMenuItems } from "@/lib/data/menu-items";
 import { fetchPromoItems } from "@/lib/data/promo-items";
 import { fetchSalesRecords } from "@/lib/data/sales-records";
+import { fetchStory } from "@/lib/data/story";
 
 export default async function PanelPage() {
-  const [menuItems, extraItems, drinkItems, promoItems, salesRecords, deliveryRates] = await Promise.all([
+  const [menuItems, extraItems, drinkItems, promoItems, salesRecords, deliveryRates, story] = await Promise.all([
     fetchMenuItems(),
     fetchExtraItems(),
     fetchDrinkItems(),
     fetchPromoItems(),
     fetchSalesRecords(),
     fetchDeliveryRates(),
+    fetchStory(),
   ]);
 
   return (
@@ -27,6 +29,7 @@ export default async function PanelPage() {
       initialPromos={promoItems}
       initialSalesRecords={salesRecords}
       initialDeliveryRates={deliveryRates}
+      initialStory={{ id: "story-main", ...story }}
     />
   );
 }

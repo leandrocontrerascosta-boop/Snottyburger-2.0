@@ -99,38 +99,42 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
       <div className="rounded-2xl border border-[var(--line)] bg-white/60 p-2.5 sm:p-3">
         <button
           type="button"
-          onClick={() => setIsCreateOpen((prev) => !prev)}
+          onClick={() => setIsCreateOpen(true)}
           className="w-full rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-left text-[13px] font-semibold transition hover:bg-[var(--surface-strong)] sm:text-sm"
         >
-          {isCreateOpen ? "Ocultar alta de bebida" : "Agregar bebida"}
+          Agregar bebida
         </button>
-
-        {isCreateOpen ? (
-          <form className="mt-3 grid gap-3 rounded-2xl border border-[var(--line)] bg-white p-4 md:grid-cols-2" onSubmit={submitCreate}>
-            <DrinkFormFields draft={draft} onChange={setDraft} />
-            <ImageUploadField
-              label="Imagen"
-              value={draft.image}
-              onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
-              targetFolder="order"
-            />
-            <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">Previsualizacion</p>
-              <div className="mt-2">
-                <ItemImagePreview src={draft.image} alt={`Preview ${draft.name || "bebida"}`} />
-              </div>
-            </div>
-            <div className="md:col-span-2">
-              <button
-                type="submit"
-                className="rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-dark)]"
-              >
-                Guardar bebida
-              </button>
-            </div>
-          </form>
-        ) : null}
       </div>
+
+      {isCreateOpen ? (
+        <div className="fixed inset-0 z-40 overflow-y-auto bg-black/45 p-3 sm:p-4" onClick={() => { setIsCreateOpen(false); setDraft(emptyDraft); }}>
+          <div className="mx-auto my-6 w-full max-w-3xl rounded-[24px] border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--shadow)] sm:rounded-3xl sm:p-5 md:p-6" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold tracking-[-0.02em] sm:text-xl">Agregar bebida</h3>
+              <button type="button" onClick={() => { setIsCreateOpen(false); setDraft(emptyDraft); }} className="rounded-full border border-[var(--line)] px-3 py-1 text-sm font-semibold">Cerrar</button>
+            </div>
+            <form className="mt-4 grid max-h-[calc(100vh-180px)] gap-3 overflow-y-auto pr-1 md:grid-cols-2" onSubmit={submitCreate}>
+              <DrinkFormFields draft={draft} onChange={setDraft} />
+              <ImageUploadField
+                label="Imagen"
+                value={draft.image}
+                onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
+                targetFolder="order"
+              />
+              <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">Previsualizacion</p>
+                <div className="mt-2">
+                  <ItemImagePreview src={draft.image} alt={`Preview ${draft.name || "bebida"}`} />
+                </div>
+              </div>
+              <div className="md:col-span-2 flex flex-wrap gap-2">
+                <button type="submit" className="rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-dark)]">Guardar bebida</button>
+                <button type="button" onClick={() => { setIsCreateOpen(false); setDraft(emptyDraft); }} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--surface-strong)]">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
 
       <div className="space-y-3 md:hidden">
         {drinks.map((drink) => (
