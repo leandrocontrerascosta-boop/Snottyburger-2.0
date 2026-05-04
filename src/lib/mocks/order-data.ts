@@ -136,7 +136,7 @@ export const locations: Location[] = [
     hours: "Lunes a Lunes · 20:00 a 01:00",
     phone: "(383) 456-7788",
     whatsappPhone: "543834567788",
-    coordinates: { lat: -28.4543661, lng: -65.7517903 },
+    coordinates: { lat: -28.4533331, lng: -65.7516701 },
   },
 ];
 

@@ -329,6 +329,7 @@ function buildWhatsAppOrderLink({ allProducts, items, subtotal, selectedLocation
   const destinationPhone = normalizeWhatsAppNumber("3834598189");
   const deliveryCost = payload.deliveryPrice ?? 0;
   const paymentLabel = translatePaymentMethod(payload.paymentMethod);
+  const fulfillmentLabel = payload.fulfillmentMethod === "pickup" ? "retiro por local" : "envio";
 
   const itemsBlock = items
     .map((item, index) => {
@@ -353,10 +354,12 @@ function buildWhatsAppOrderLink({ allProducts, items, subtotal, selectedLocation
       const extrasOptions = collectGroupOptions(product, item.selectedChoiceIds, "extras", choiceMap);
       const noteText = item.note?.trim() || "";
 
-      const baseLine = `${index + 1}. ${item.quantity}x ${product.name}${sizeLabel ? ` ${sizeLabel}` : ""} - ${formatCurrency(lineTotal)}`;
-      const friesLine = product.categoryId === "burgers" ? `\n   Papas: ${friesOptions.length > 0 ? friesOptions.join(", ") : "-"}` : "";
-      const extrasLine = product.categoryId === "burgers" ? `\n   Extras: ${extrasOptions.length > 0 ? extrasOptions.join(", ") : "-"}` : "";
-      const obsLine = `\n   Obs: ${noteText || "-"}`;
+      const baseLine = `* ${item.quantity}x ${product.name}${sizeLabel ? ` (${sizeLabel})` : ""} - ${formatCurrency(lineTotal)}`;
+      const friesLine =
+        product.categoryId === "burgers" && friesOptions.length > 0 ? `\n   Papas: ${friesOptions.join(", ")}` : "";
+      const extrasLine =
+        product.categoryId === "burgers" && extrasOptions.length > 0 ? `\n   Extras: ${extrasOptions.join(", ")}` : "";
+      const obsLine = noteText ? `\n   Obs: ${noteText}` : "";
 
       return `${baseLine}${friesLine}${extrasLine}${obsLine}`;
     })
@@ -367,38 +370,35 @@ function buildWhatsAppOrderLink({ allProducts, items, subtotal, selectedLocation
     ? `https://www.google.com/maps/search/?api=1&query=${payload.deliveryAddress.coordinates.lat},${payload.deliveryAddress.coordinates.lng}`
     : "N/A";
 
-  const changeText = payload.paymentMethod === "cash"
+  const cashLines = payload.paymentMethod === "cash"
     ? payload.cashPaymentAmount && payload.changeAmount !== undefined
-      ? `\nPago con: ${formatCurrency(payload.cashPaymentAmount)}\nVuelto: ${formatCurrency(payload.changeAmount)}`
-      : "\nPago con: efectivo exacto\nVuelto: no requiere"
-    : "";
+      ? [`💵 Pago con: ${formatCurrency(payload.cashPaymentAmount)}`, `🪙 Vuelto: ${formatCurrency(payload.changeAmount)}`]
+      : ["💵 Pago con: efectivo exacto", "🪙 Vuelto: no requiere"]
+    : [];
+
+  const addressLine =
+    payload.fulfillmentMethod === "delivery" && payload.deliveryAddress
+      ? payload.deliveryAddress.label
+      : `${selectedLocation.address}, ${selectedLocation.area}`;
 
   const message = [
-    "*NUEVO PEDIDO - SNOTTYBURGER*",
+    "📢 *Nuevo pedido*",
     "",
-    "*Datos del cliente*",
-    `Nombre: ${payload.customerName}`,
-    `Telefono: ${payload.contactPhone}`,
-    `Modalidad: ${payload.fulfillmentMethod === "pickup" ? "Retiro por local" : "Envio a domicilio"}`,
-    `Local: ${selectedLocation.name} - ${selectedLocation.address}`,
+    `👤 Cliente: ${payload.customerName}`,
+    `📞 Tel: ${payload.contactPhone}`,
+    `📍 Direccion: ${addressLine}`,
+    `🚚 Entrega: ${fulfillmentLabel}`,
+    `💳 Pago: ${paymentLabel.toLowerCase()}`,
+    ...cashLines,
+    `🏬 Local: ${selectedLocation.name} (${selectedLocation.address})`,
     "",
-    "*Detalle del pedido*",
+    "🛒 *Detalle:*",
     itemsBlock,
     "",
-    "*Resumen de costos*",
-    `Productos: ${formatCurrency(subtotal)}`,
-    `Envio: ${formatCurrency(deliveryCost)}`,
-    `Precio final: ${formatCurrency(payload.total)}`,
-    "",
-    "*Medio de pago*",
-    `Metodo: ${paymentLabel}`,
-    changeText,
-    "",
-    "*Ubicacion para cadete*",
-    payload.fulfillmentMethod === "delivery" && payload.deliveryAddress
-      ? `Direccion seleccionada: ${payload.deliveryAddress.label}`
-      : "Sin envio a domicilio",
-    payload.fulfillmentMethod === "delivery" ? `Google Maps: ${mapsLink}` : "Google Maps: N/A",
+    `💰 *Total:* ${formatCurrency(payload.total)}`,
+    `🧾 Productos: ${formatCurrency(subtotal)}`,
+    `🚛 Envio: ${formatCurrency(deliveryCost)}`,
+    payload.fulfillmentMethod === "delivery" ? `🗺️ Maps: ${mapsLink}` : "",
   ]
     .filter((line) => line !== "")
     .join("\n");
