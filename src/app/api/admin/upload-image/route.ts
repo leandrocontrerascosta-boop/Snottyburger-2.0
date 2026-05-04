@@ -6,6 +6,8 @@ export const runtime = "nodejs";
 
 const MAX_SIZE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TARGETS = new Set(["order", "promos", "home"]);
+const CARD_IMAGE_WIDTH = 1400;
+const CARD_IMAGE_HEIGHT = 1200;
 
 export async function POST(request: Request) {
   try {
@@ -43,11 +45,13 @@ export async function POST(request: Request) {
     const optimizedBuffer = await sharp(sourceBuffer)
       .rotate()
       .resize({
-        width: 1800,
-        height: 1800,
-        fit: "inside",
-        withoutEnlargement: true,
+        width: CARD_IMAGE_WIDTH,
+        height: CARD_IMAGE_HEIGHT,
+        fit: "cover",
+        position: "attention",
       })
+      // Prevent transparent PNG uploads from showing odd frames on card backgrounds.
+      .flatten({ background: "#f0e8de" })
       .webp({ quality: 82, effort: 4 })
       .toBuffer();
 

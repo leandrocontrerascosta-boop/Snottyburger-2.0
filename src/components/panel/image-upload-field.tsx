@@ -61,7 +61,7 @@ export function ImageUploadField({ label, value, onChange, targetFolder }: Image
         className="rounded-2xl border border-dashed border-[var(--line)] bg-white p-4"
       >
         <p className="text-sm text-[var(--muted)]">
-          Arrastra una imagen aqui o usa el boton para cargarla. Se guarda optimizada en formato WebP.
+          Arrastra una imagen aqui o usa el boton para cargarla. Se ajusta automaticamente al formato de tarjeta y se optimiza en WebP.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <button
