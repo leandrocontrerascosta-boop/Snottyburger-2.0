@@ -1,4 +1,6 @@
 import { OrderExperience } from "@/components/order/order-experience";
+
+export const dynamic = "force-dynamic";
 import { fetchBurgerModifierGroups } from "@/lib/data/burger-modifier-groups";
 import { fetchDeliveryRates } from "@/lib/data/delivery-rates";
 import { fetchDrinkItems } from "@/lib/data/drink-items";

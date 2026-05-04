@@ -41,7 +41,6 @@ export function OrderHeader({ location, itemCount, canOrder, onOpenLocation, onO
           className="tap-target inline-flex items-center justify-center gap-2 rounded-full bg-[var(--brand)] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[var(--brand-dark)] disabled:cursor-not-allowed disabled:bg-[#c9c1c2] sm:px-4 sm:text-sm"
           aria-label={`Abrir carrito con ${itemCount} items`}
         >
-          <span>Carrito</span>
           <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white px-1.5 text-[11px] text-[var(--brand)] sm:h-7 sm:min-w-7 sm:px-2">
             {itemCount}
           </span>
