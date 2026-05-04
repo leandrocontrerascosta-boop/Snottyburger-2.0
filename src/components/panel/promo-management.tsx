@@ -159,6 +159,12 @@ export function PromoManagement({
               onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
               targetFolder="promos"
             />
+            <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">Previsualizacion</p>
+              <div className="mt-2">
+                <ItemImagePreview src={draft.image} alt={`Preview ${draft.title || "promo"}`} />
+              </div>
+            </div>
 
             <label className="space-y-1 text-sm font-medium">
               Precio simple
@@ -258,6 +264,9 @@ export function PromoManagement({
               <div>
                 <h3 className="text-lg font-semibold">{promo.title}</h3>
                 <p className="text-sm text-[var(--muted)]">{promo.description}</p>
+                <div className="mt-2 max-w-[220px]">
+                  <ItemImagePreview src={promo.image} alt={promo.title} />
+                </div>
                 <p className="mt-2 text-xs text-[var(--muted)]">
                   Imagen: {promo.image} · Precio simple: {formatCurrency(promo.simplePrice)} · Precio doble: {formatCurrency(promo.doublePrice)}
                 </p>
@@ -324,6 +333,12 @@ export function PromoManagement({
               </label>
 
               <ImageUploadField label="Imagen promo" value={editDraft.image} onChange={(value) => setEditDraft((prev) => ({ ...prev, image: value }))} targetFolder="promos" />
+              <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">Previsualizacion</p>
+                <div className="mt-2">
+                  <ItemImagePreview src={editDraft.image} alt={`Preview ${editDraft.title || "promo"}`} />
+                </div>
+              </div>
 
               <label className="space-y-1 text-sm font-medium">
                 Precio simple
@@ -368,4 +383,16 @@ export function PromoManagement({
       ) : null}
     </section>
   );
+}
+
+function ItemImagePreview({ src, alt }: { src: string; alt: string }) {
+  if (!src.trim()) {
+    return (
+      <div className="grid h-24 w-full place-items-center rounded-lg border border-dashed border-[var(--line)] bg-white text-xs text-[var(--muted)]">
+        Sin imagen
+      </div>
+    );
+  }
+
+  return <img src={src} alt={alt} className="h-24 w-full rounded-lg border border-[var(--line)] bg-white object-cover" />;
 }

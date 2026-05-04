@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  applyDailyReset,
   getStoreAvailabilityState,
   STORE_AVAILABILITY_EVENT,
   type ManualStoreOverride,
@@ -48,22 +47,10 @@ export function useStoreAvailability(): UseStoreAvailabilityValue {
           lastResetDate: typeof payload.settings?.lastResetDate === "string" ? payload.settings.lastResetDate : undefined,
         };
 
-        const normalized = applyDailyReset(incoming, now);
-        const changed =
-          incoming.manualOverride !== normalized.manualOverride || incoming.lastResetDate !== normalized.lastResetDate;
-
-        if (changed) {
-          await fetch("/api/admin/store-availability", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(normalized),
-          });
-        }
-
-        saveStoreAvailabilitySettings(normalized);
+        saveStoreAvailabilitySettings(incoming);
         setSnapshot({
-          settings: normalized,
-          state: getStoreAvailabilityState(normalized, now),
+          settings: incoming,
+          state: getStoreAvailabilityState(incoming, now),
         });
       } catch {
         refreshFromLocal();

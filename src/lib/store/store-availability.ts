@@ -17,7 +17,6 @@ export const STORE_AVAILABILITY_EVENT = "snottyburger-store-availability-change"
 
 const OPEN_HOUR = 20;
 const CLOSE_HOUR = 1;
-const RESET_HOUR = 6;
 
 export function isStoreOpenBySchedule(date: Date) {
   const hour = date.getHours();
@@ -106,22 +105,9 @@ export function setManualStoreOverride(manualOverride: ManualStoreOverride) {
 
 export function applyDailyReset(
   settings: StoreAvailabilitySettings,
-  date: Date = new Date(),
+  _date: Date = new Date(),
 ): StoreAvailabilitySettings {
-  const dayKey = getDayKey(date);
-
-  if (date.getHours() < RESET_HOUR) {
-    return settings;
-  }
-
-  if (settings.lastResetDate === dayKey) {
-    return settings;
-  }
-
-  return {
-    manualOverride: "none",
-    lastResetDate: dayKey,
-  };
+  return settings;
 }
 
 export function runStoreAvailabilityRefresh(now: Date = new Date()) {
@@ -146,11 +132,4 @@ function parseManualOverride(value: unknown): ManualStoreOverride {
   }
 
   return "none";
-}
-
-function getDayKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }

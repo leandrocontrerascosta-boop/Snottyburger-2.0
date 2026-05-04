@@ -114,6 +114,12 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
               onChange={(value) => setDraft((prev) => ({ ...prev, image: value }))}
               targetFolder="order"
             />
+            <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">Previsualizacion</p>
+              <div className="mt-2">
+                <ItemImagePreview src={draft.image} alt={`Preview ${draft.name || "bebida"}`} />
+              </div>
+            </div>
             <div className="md:col-span-2">
               <button
                 type="submit"
@@ -144,8 +150,9 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
               <p className="mt-1 font-semibold text-[var(--foreground)]">{formatCurrency(drink.price)}</p>
             </div>
 
-            <div className="mt-3 space-y-1 text-xs text-[var(--muted)]">
-              <p>Imagen: {drink.image}</p>
+            <div className="mt-3 space-y-2 text-xs text-[var(--muted)]">
+              <ItemImagePreview src={drink.image} alt={drink.name} />
+              <p className="break-all">Imagen: {drink.image}</p>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -174,7 +181,12 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
               <tr key={drink.id} className="border-b border-[var(--line)] last:border-b-0">
                 <td className="px-3 py-3 font-semibold">{drink.name}</td>
                 <td className="px-3 py-3 text-[var(--muted)]">{drink.description}</td>
-                <td className="px-3 py-3 text-xs text-[var(--muted)]">{drink.image}</td>
+                <td className="px-3 py-3">
+                  <div className="flex items-center gap-2">
+                    <ItemImagePreview src={drink.image} alt={drink.name} compact />
+                    <span className="line-clamp-1 text-xs text-[var(--muted)]">{drink.image}</span>
+                  </div>
+                </td>
                 <td className="px-3 py-3">{formatCurrency(drink.price)}</td>
                 <td className="px-3 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${drink.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{drink.status === "active" ? "Activa" : "Pausada"}</span></td>
                 <td className="px-3 py-3">
@@ -206,6 +218,12 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
                 onChange={(value) => setEditDraft((prev) => ({ ...prev, image: value }))}
                 targetFolder="order"
               />
+              <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">Previsualizacion</p>
+                <div className="mt-2">
+                  <ItemImagePreview src={editDraft.image} alt={`Preview ${editDraft.name || "bebida"}`} />
+                </div>
+              </div>
 
               <div className="md:col-span-2 flex flex-wrap gap-2">
                 <button type="submit" className="rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-dark)]">Guardar cambios</button>
@@ -242,5 +260,23 @@ function DrinkFormFields({ draft, onChange }: DrinkFormFieldsProps) {
         <input type="number" min={0} value={draft.price} onChange={(event) => onChange((prev) => ({ ...prev, price: Number(event.target.value) || 0 }))} className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none ring-[var(--brand)]/40 transition focus:ring-2" />
       </label>
     </>
+  );
+}
+
+function ItemImagePreview({ src, alt, compact = false }: { src: string; alt: string; compact?: boolean }) {
+  if (!src.trim()) {
+    return (
+      <div className={`grid place-items-center rounded-lg border border-dashed border-[var(--line)] bg-white text-xs text-[var(--muted)] ${compact ? "h-10 w-10" : "h-24 w-full"}`}>
+        Sin imagen
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={`rounded-lg border border-[var(--line)] bg-white object-cover ${compact ? "h-10 w-10" : "h-24 w-full"}`}
+    />
   );
 }
