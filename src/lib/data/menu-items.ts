@@ -1,0 +1,59 @@
+import "server-only";
+import { initialMenuItems } from "@/lib/mocks/panel-data";
+import type { MenuDiscountTarget, MenuItemAdmin } from "@/lib/types/panel";
+import { createSupabasePublicClient } from "@/lib/supabase/public-client";
+
+type MenuItemRow = {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  created_at?: string | null;
+  simple_price: number;
+  double_price: number;
+  discount_target: MenuDiscountTarget | null;
+  discount_percent: number | null;
+  status: "active" | "paused";
+};
+
+export async function fetchMenuItems(options?: { activeOnly?: boolean }): Promise<MenuItemAdmin[]> {
+  const fallback = options?.activeOnly ? initialMenuItems.filter((item) => item.status === "active") : initialMenuItems;
+  const supabase = createSupabasePublicClient();
+
+  if (!supabase) {
+    return fallback;
+  }
+
+  let query = supabase
+    .from("menu_items")
+    .select("*")
+    .order("name", { ascending: true });
+
+  if (options?.activeOnly) {
+    query = query.eq("status", "active");
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return fallback;
+  }
+
+  const mapped = data.map(mapMenuItemRow);
+  return mapped.length > 0 ? mapped : fallback;
+}
+
+function mapMenuItemRow(row: MenuItemRow): MenuItemAdmin {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    image: row.image,
+    createdAt: row.created_at ?? undefined,
+    simplePrice: row.simple_price,
+    doublePrice: row.double_price,
+    discountTarget: row.discount_target ?? undefined,
+    discountPercent: row.discount_percent ?? undefined,
+    status: row.status,
+  };
+}

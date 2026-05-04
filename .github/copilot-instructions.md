@@ -1,0 +1,5 @@
+- Next.js App Router project for a burger e-commerce experience.
+- Current priority is the `/orden` route.
+- Keep UI modular, typed, and ready for future backend integration.
+- Prefer reusable components, mock domain data, and pricing helpers over inline page logic.
+- Optimize for mobile-first performance and clean composition.
