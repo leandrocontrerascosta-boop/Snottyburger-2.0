@@ -14,8 +14,13 @@ const displayFont = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
-  title: "Snottyburger 2.0",
+  title: "Snottyburgers",
   description: "Premium fast-food ordering experience",
+  icons: {
+    icon: "/images/home/logosnotty.png",
+    shortcut: "/images/home/logosnotty.png",
+    apple: "/images/home/logosnotty.png",
+  },
 };
 
 export const viewport: Viewport = {

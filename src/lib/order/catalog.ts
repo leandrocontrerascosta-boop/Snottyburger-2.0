@@ -84,6 +84,7 @@ export function buildBurgerProductsWithModifiers(menuItems: MenuItemAdmin[], sha
         createdAt: item.createdAt,
         image: item.image,
         featured: true,
+        badgeText: item.badgeText,
         modifierGroups: createBurgerModifiers(doublePrice, simplePrice, sharedModifierGroups),
       };
     });

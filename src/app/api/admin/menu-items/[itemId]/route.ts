@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { saveMenuItemBadge, type MenuItemBadge } from "@/lib/data/menu-item-badges";
 import { ensureWebOptimizedImage } from "@/lib/images/ensure-web-image";
 import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 import type { MenuItemAdmin } from "@/lib/types/panel";
@@ -9,6 +10,7 @@ type UpdateMenuItemBody = Partial<{
   image: string;
   simplePrice: number;
   doublePrice: number;
+  badgeText?: MenuItemBadge;
   discountTarget?: "simple" | "double";
   discountPercent?: number;
   status: "active" | "paused";
@@ -80,7 +82,11 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "No se pudo actualizar el producto" }, { status: 500 });
   }
 
-  return NextResponse.json({ item: mapMenuItemRow(data) });
+  if ("badgeText" in body) {
+    await saveMenuItemBadge(data.id, body.badgeText);
+  }
+
+  return NextResponse.json({ item: mapMenuItemRow(data, body.badgeText) });
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
@@ -97,10 +103,12 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "No se pudo eliminar el producto" }, { status: 500 });
   }
 
+  await saveMenuItemBadge(itemId, undefined);
+
   return NextResponse.json({ ok: true });
 }
 
-function mapMenuItemRow(row: MenuItemRow): MenuItemAdmin {
+function mapMenuItemRow(row: MenuItemRow, badgeText?: MenuItemBadge): MenuItemAdmin {
   return {
     id: row.id,
     name: row.name,
@@ -108,6 +116,7 @@ function mapMenuItemRow(row: MenuItemRow): MenuItemAdmin {
     image: row.image,
     simplePrice: row.simple_price,
     doublePrice: row.double_price,
+    badgeText,
     discountTarget: row.discount_target ?? undefined,
     discountPercent: row.discount_percent ?? undefined,
     status: row.status,

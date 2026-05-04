@@ -11,6 +11,7 @@ export type MenuItemDraft = {
   image: string;
   simplePrice: number;
   doublePrice: number;
+  badgeText?: "Top" | "Nuevo";
   discountTarget?: MenuDiscountTarget;
   discountPercent?: number;
 };
@@ -68,6 +69,7 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
       image: item.image,
       simplePrice: item.simplePrice,
       doublePrice: item.doublePrice,
+      badgeText: item.badgeText,
       discountTarget: item.discountTarget,
       discountPercent: item.discountPercent,
     });
@@ -184,6 +186,7 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
             <div className="mt-3 space-y-2 text-xs text-[var(--muted)]">
               <ItemImagePreview src={item.image} alt={item.name} />
               <p className="break-all">Imagen: {item.image}</p>
+              <p>Etiqueta: {item.badgeText ?? "Sin etiqueta"}</p>
               <p>
                 Descuento: {item.discountPercent && item.discountTarget ? `${item.discountPercent}% en ${item.discountTarget}` : "Sin descuento"}
               </p>
@@ -225,6 +228,7 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
               <th className="px-3 py-3">Imagen</th>
               <th className="px-3 py-3">Simple</th>
               <th className="px-3 py-3">Doble</th>
+              <th className="px-3 py-3">Etiqueta</th>
               <th className="px-3 py-3">Descuento</th>
               <th className="px-3 py-3">Estado</th>
               <th className="px-3 py-3">Acciones</th>
@@ -243,6 +247,7 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
                 </td>
                 <td className="px-3 py-3">{formatCurrency(item.simplePrice)}</td>
                 <td className="px-3 py-3">{formatCurrency(item.doublePrice)}</td>
+                <td className="px-3 py-3 text-xs">{item.badgeText ?? "Sin etiqueta"}</td>
                 <td className="px-3 py-3 text-xs">
                   {item.discountPercent && item.discountTarget ? `${item.discountPercent}% en ${item.discountTarget}` : "Sin descuento"}
                 </td>
@@ -380,6 +385,24 @@ function MenuFormFields({ draft, onChange }: MenuFormFieldsProps) {
         value={draft.doublePrice}
         onChange={(value) => onChange((prev) => ({ ...prev, doublePrice: value }))}
       />
+
+      <label className="space-y-1 text-sm font-medium">
+        Etiqueta
+        <select
+          value={draft.badgeText ?? "none"}
+          onChange={(event) =>
+            onChange((prev) => ({
+              ...prev,
+              badgeText: event.target.value === "none" ? undefined : (event.target.value as "Top" | "Nuevo"),
+            }))
+          }
+          className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none ring-[var(--brand)]/40 transition focus:ring-2"
+        >
+          <option value="none">Sin etiqueta</option>
+          <option value="Top">Top</option>
+          <option value="Nuevo">Nuevo</option>
+        </select>
+      </label>
 
       <label className="space-y-1 text-sm font-medium">
         Descuento en precio

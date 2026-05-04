@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { saveMenuItemBadge, type MenuItemBadge } from "@/lib/data/menu-item-badges";
 import { ensureWebOptimizedImage } from "@/lib/images/ensure-web-image";
 import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 import type { MenuItemAdmin } from "@/lib/types/panel";
@@ -9,6 +10,7 @@ type CreateMenuItemBody = {
   image: string;
   simplePrice: number;
   doublePrice: number;
+  badgeText?: MenuItemBadge;
   discountTarget?: "simple" | "double";
   discountPercent?: number;
 };
@@ -54,10 +56,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No se pudo crear el producto" }, { status: 500 });
   }
 
-  return NextResponse.json({ item: mapMenuItemRow(data) });
+  await saveMenuItemBadge(data.id, body.badgeText);
+
+  return NextResponse.json({ item: mapMenuItemRow(data, body.badgeText) });
 }
 
-function mapMenuItemRow(row: MenuItemRow): MenuItemAdmin {
+function mapMenuItemRow(row: MenuItemRow, badgeText?: MenuItemBadge): MenuItemAdmin {
   return {
     id: row.id,
     name: row.name,
@@ -65,6 +69,7 @@ function mapMenuItemRow(row: MenuItemRow): MenuItemAdmin {
     image: row.image,
     simplePrice: row.simple_price,
     doublePrice: row.double_price,
+    badgeText,
     discountTarget: row.discount_target ?? undefined,
     discountPercent: row.discount_percent ?? undefined,
     status: row.status,

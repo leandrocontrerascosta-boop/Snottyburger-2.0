@@ -27,6 +27,7 @@ export type Product = {
   createdAt?: string;
   image: string;
   featured?: boolean;
+  badgeText?: "Top" | "Nuevo";
   modifierGroups: ModifierGroup[];
 };
 

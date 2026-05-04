@@ -7,16 +7,6 @@ export const categories: Category[] = [
 
 const burgerModifiers = [
   {
-    id: "fries-type",
-    title: "Tipo de papas",
-    description: "Elegi como queres las papas incluidas.",
-    type: "single" as const,
-    choices: [
-      { id: "fries-seasoned", label: "Sazonadas", priceDelta: 0, kind: "addon" as const },
-      { id: "fries-plain", label: "Sin sazon", priceDelta: 0, kind: "addon" as const },
-    ],
-  },
-  {
     id: "extras",
     title: "Extras",
     type: "multi" as const,

@@ -1,4 +1,5 @@
 import "server-only";
+import { fetchMenuItemBadgeMap } from "@/lib/data/menu-item-badges";
 import { initialMenuItems } from "@/lib/mocks/panel-data";
 import type { MenuDiscountTarget, MenuItemAdmin } from "@/lib/types/panel";
 import { createSupabasePublicClient } from "@/lib/supabase/public-client";
@@ -17,7 +18,9 @@ type MenuItemRow = {
 };
 
 export async function fetchMenuItems(options?: { activeOnly?: boolean }): Promise<MenuItemAdmin[]> {
-  const fallback = options?.activeOnly ? initialMenuItems.filter((item) => item.status === "active") : initialMenuItems;
+  const fallbackBase = options?.activeOnly ? initialMenuItems.filter((item) => item.status === "active") : initialMenuItems;
+  const badgeMap = await fetchMenuItemBadgeMap();
+  const fallback = fallbackBase.map((item) => ({ ...item, badgeText: badgeMap[item.id] }));
   const supabase = createSupabasePublicClient();
 
   if (!supabase) {
@@ -39,11 +42,11 @@ export async function fetchMenuItems(options?: { activeOnly?: boolean }): Promis
     return fallback;
   }
 
-  const mapped = data.map(mapMenuItemRow);
+  const mapped = data.map((row) => mapMenuItemRow(row, badgeMap));
   return mapped.length > 0 ? mapped : fallback;
 }
 
-function mapMenuItemRow(row: MenuItemRow): MenuItemAdmin {
+function mapMenuItemRow(row: MenuItemRow, badgeMap: Record<string, "Top" | "Nuevo">): MenuItemAdmin {
   return {
     id: row.id,
     name: row.name,
@@ -52,6 +55,7 @@ function mapMenuItemRow(row: MenuItemRow): MenuItemAdmin {
     createdAt: row.created_at ?? undefined,
     simplePrice: row.simple_price,
     doublePrice: row.double_price,
+    badgeText: badgeMap[row.id],
     discountTarget: row.discount_target ?? undefined,
     discountPercent: row.discount_percent ?? undefined,
     status: row.status,

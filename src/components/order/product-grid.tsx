@@ -55,6 +55,10 @@ export function ProductGrid({ sections, topProductIds, onSelectProduct }: Produc
 function getProductBadges(product: Product, topProductIds: Set<string>): string[] {
   const badges: string[] = [];
 
+  if (product.badgeText) {
+    badges.push(product.badgeText);
+  }
+
   if (topProductIds.has(product.id)) {
     badges.push("Top");
   }
@@ -63,23 +67,5 @@ function getProductBadges(product: Product, topProductIds: Set<string>): string[
     badges.push("Descuento");
   }
 
-  if (isNewProduct(product.createdAt)) {
-    badges.push("Nuevo");
-  }
-
-  return badges.slice(0, 2);
-}
-
-function isNewProduct(createdAt?: string) {
-  if (!createdAt) {
-    return false;
-  }
-
-  const created = new Date(createdAt);
-  if (Number.isNaN(created.getTime())) {
-    return false;
-  }
-
-  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-  return Date.now() - created.getTime() <= sevenDaysMs;
+  return Array.from(new Set(badges)).slice(0, 2);
 }
