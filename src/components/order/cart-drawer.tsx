@@ -371,20 +371,20 @@ function buildWhatsAppOrderLink({ allProducts, items, subtotal, selectedLocation
     : "N/A";
 
   const emoji = {
-    alert: "\uD83D\uDCE2",
-    customer: "\uD83D\uDC64",
-    phone: "\uD83D\uDCDE",
-    address: "\uD83D\uDCCD",
-    delivery: "\uD83D\uDE9A",
-    payment: "\uD83D\uDCB3",
-    cash: "\uD83D\uDCB5",
-    change: "\uD83D\uDCB8",
-    store: "\uD83C\uDFE0",
-    detail: "\uD83D\uDCCB",
-    total: "\uD83D\uDCB0",
-    products: "\uD83D\uDCE6",
-    shipping: "\uD83D\uDE9B",
-    maps: "\uD83D\uDCCC",
+    alert: "📢",
+    customer: "👤",
+    phone: "📞",
+    address: "📍",
+    delivery: "🚚",
+    payment: "💳",
+    cash: "💵",
+    change: "💸",
+    store: "🏠",
+    detail: "📋",
+    total: "💰",
+    products: "📦",
+    shipping: "🚛",
+    maps: "📌",
   } as const;
 
   const cashLines = payload.paymentMethod === "cash"
