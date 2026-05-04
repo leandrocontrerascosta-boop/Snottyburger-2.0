@@ -4,16 +4,6 @@ import type { ModifierGroup, Product, PromoDeal } from "@/lib/types/order";
 
 const fallbackBurgerModifierGroups: ModifierGroup[] = [
   {
-    id: "fries-type",
-    title: "Tipo de papas",
-    description: "Elegi como queres las papas incluidas.",
-    type: "single",
-    choices: [
-      { id: "fries-seasoned", label: "Sazonadas", priceDelta: 0, kind: "addon" },
-      { id: "fries-plain", label: "Sin sazon", priceDelta: 0, kind: "addon" },
-    ],
-  },
-  {
     id: "extras",
     title: "Extras",
     type: "multi",
@@ -33,7 +23,9 @@ const fallbackBurgerModifierGroups: ModifierGroup[] = [
 ];
 
 function createBurgerModifiers(doublePrice: number, basePrice: number, sharedModifierGroups: ModifierGroup[]) {
-  const modifiers = sharedModifierGroups.map((group) => ({ ...group, choices: [...group.choices] }));
+  const modifiers = sharedModifierGroups
+    .filter((group) => group.id !== "fries-type")
+    .map((group) => ({ ...group, choices: [...group.choices] }));
 
   if (doublePrice > basePrice) {
     modifiers.unshift({
