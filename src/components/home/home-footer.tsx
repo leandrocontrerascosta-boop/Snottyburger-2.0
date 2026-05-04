@@ -30,12 +30,12 @@ export function HomeFooter({ locations }: HomeFooterProps) {
           <section className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Redes y Ubicaciones</p>
             <a
-              href="https://instagram.com/snottyburger"
+              href="https://instagram.com/snottyburgers"
               target="_blank"
               rel="noreferrer"
               className="inline-flex text-sm font-semibold text-white/90 transition hover:text-white"
             >
-              Instagram: @snottyburger
+              Instagram: @snottyburgers
             </a>
             <ul className="space-y-1.5 text-sm text-white/80">
               {locations.map((location) => (
