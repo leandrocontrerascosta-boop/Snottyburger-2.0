@@ -1,4 +1,7 @@
 import { PanelShell } from "@/components/panel/panel-shell";
+
+export const dynamic = "force-dynamic";
+
 import { fetchDeliveryRates } from "@/lib/data/delivery-rates";
 import { fetchDrinkItems } from "@/lib/data/drink-items";
 import { fetchExtraItems } from "@/lib/data/extra-items";
