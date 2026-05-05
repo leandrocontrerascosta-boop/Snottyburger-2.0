@@ -1,5 +1,4 @@
 import "server-only";
-import { initialPromos } from "@/lib/mocks/panel-data";
 import { createSupabasePublicClient } from "@/lib/supabase/public-client";
 import type { PromoAdmin, PromoCustomizationPolicy } from "@/lib/types/panel";
 
@@ -21,12 +20,10 @@ type PromoItemRow = {
 const EXCLUDED_PROMO_TITLES = new Set(["Lunch Week", "Noche Snotty"]);
 
 export async function fetchPromoItems(options?: { activeOnly?: boolean }): Promise<PromoAdmin[]> {
-  const filteredFallback = initialPromos.filter((item) => !EXCLUDED_PROMO_TITLES.has(item.title));
-  const fallback = options?.activeOnly ? filteredFallback.filter((item) => item.status === "active") : filteredFallback;
   const supabase = createSupabasePublicClient();
 
   if (!supabase) {
-    return fallback;
+    return [];
   }
 
   let query = supabase
@@ -41,13 +38,12 @@ export async function fetchPromoItems(options?: { activeOnly?: boolean }): Promi
   const { data, error } = await query;
 
   if (error || !data) {
-    return fallback;
+    return [];
   }
 
-  const mapped = data
+  return data
     .map(mapPromoItemRow)
     .filter((item) => !EXCLUDED_PROMO_TITLES.has(item.title));
-  return mapped;
 }
 
 export function mapPromoItemRow(row: PromoItemRow): PromoAdmin {
