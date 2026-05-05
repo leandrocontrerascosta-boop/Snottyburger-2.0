@@ -47,7 +47,7 @@ export async function fetchPromoItems(options?: { activeOnly?: boolean }): Promi
   const mapped = data
     .map(mapPromoItemRow)
     .filter((item) => !EXCLUDED_PROMO_TITLES.has(item.title));
-  return mapped.length > 0 ? mapped : fallback;
+  return mapped;
 }
 
 export function mapPromoItemRow(row: PromoItemRow): PromoAdmin {

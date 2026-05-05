@@ -27,6 +27,7 @@ export function ProductDetailModal({ product, canOrder, closedMessage, onClose, 
   const [quantity, setQuantity] = useState(1);
   const [selectedChoiceIds, setSelectedChoiceIds] = useState<string[]>(() => getDefaultChoiceIds(product));
   const [note, setNote] = useState("");
+  const [isImageFullscreen, setIsImageFullscreen] = useState(false);
   const isBurger = product?.categoryId === "burgers";
 
   const total = useMemo(() => {
@@ -193,6 +194,12 @@ export function ProductDetailModal({ product, canOrder, closedMessage, onClose, 
           >
             ×
           </button>
+          <button
+            type="button"
+            onClick={() => setIsImageFullscreen(true)}
+            className="absolute inset-0 h-full w-full cursor-zoom-in"
+            aria-label="Ver imagen completa"
+          />
           <Image
             src={product.image}
             alt={product.name}
@@ -202,6 +209,38 @@ export function ProductDetailModal({ product, canOrder, closedMessage, onClose, 
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 65vw, 900px"
           />
         </div>
+
+        {isImageFullscreen ? (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            onClick={() => setIsImageFullscreen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Imagen completa"
+          >
+            <button
+              type="button"
+              onClick={() => setIsImageFullscreen(false)}
+              className="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-2xl text-white transition hover:bg-white/30"
+              aria-label="Cerrar imagen"
+            >
+              ×
+            </button>
+            <div
+              className="relative max-h-[90dvh] w-full max-w-3xl cursor-zoom-out overflow-hidden rounded-[20px] shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={product.image}
+                alt={product.name}
+                width={1200}
+                height={900}
+                className="h-auto w-full object-contain"
+                priority
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
