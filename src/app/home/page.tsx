@@ -7,7 +7,6 @@ import { fetchMenuItems } from "@/lib/data/menu-items";
 import { fetchStory } from "@/lib/data/story";
 import { buildBurgerProductsWithModifiers, locations } from "@/lib/order/catalog";
 import { HomeFooter } from "@/components/home/home-footer";
-import { HomeGallery } from "@/components/home/home-gallery";
 import { HomeHero } from "@/components/home/home-hero";
 import { HomeNavbar } from "@/components/home/home-navbar";
 import { HomeStory } from "@/components/home/home-story";
@@ -34,7 +33,6 @@ export default async function HomePage() {
           </div>
           <HomeTextMenu burgers={burgers} />
           <HomeStory title={story.title} body={story.body} />
-          <HomeGallery />
         </div>
 
         <HomeFooter locations={locations} />

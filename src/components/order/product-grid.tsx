@@ -59,10 +59,6 @@ function getProductBadges(product: Product, topProductIds: Set<string>): string[
     badges.push(product.badgeText);
   }
 
-  if (topProductIds.has(product.id)) {
-    badges.push("Top");
-  }
-
   if (product.discountPercent && product.discountPercent > 0) {
     badges.push("Descuento");
   }

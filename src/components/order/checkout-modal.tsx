@@ -423,9 +423,9 @@ export function CheckoutModal({
                     type="button"
                     onClick={useCurrentLocation}
                     disabled={isGettingCurrentLocation}
-                    className="inline-flex w-fit items-center rounded-[12px] border border-[var(--line)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--brand)] hover:text-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex w-fit items-center gap-1.5 rounded-[12px] border-2 border-[var(--brand)] bg-[var(--brand)]/10 px-4 py-2.5 text-sm font-bold text-[var(--brand)] transition hover:bg-[var(--brand)] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {isGettingCurrentLocation ? "Obteniendo ubicacion..." : "Direccion actual"}
+                    {isGettingCurrentLocation ? "Obteniendo ubicacion..." : "📍 Tu ubicacion actual"}
                   </button>
                 </div>
 
