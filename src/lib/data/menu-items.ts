@@ -26,8 +26,8 @@ export async function fetchMenuItems(options?: { activeOnly?: boolean }): Promis
     return {
       ...item,
       badgeText: badgeMap[item.id],
-      discountTarget: offer?.discountTarget ?? item.discountTarget,
-      discountPercent: offer?.discountPercent ?? item.discountPercent,
+      discountTarget: offer?.discountTarget,
+      discountPercent: offer?.discountPercent,
     };
   });
   const supabase = createSupabasePublicClient();
@@ -71,8 +71,8 @@ function mapMenuItemRow(
     simplePrice: row.simple_price,
     doublePrice: row.double_price,
     badgeText: badgeMap[row.id],
-    discountTarget: offer?.discountTarget ?? row.discount_target ?? undefined,
-    discountPercent: offer?.discountPercent ?? row.discount_percent ?? undefined,
+    discountTarget: offer?.discountTarget,
+    discountPercent: offer?.discountPercent,
     status: row.status,
   };
 }
