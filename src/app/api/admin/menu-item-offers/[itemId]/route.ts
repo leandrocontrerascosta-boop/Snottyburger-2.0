@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { saveMenuItemOffer } from "@/lib/data/menu-item-offers";
-import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 import type { MenuDiscountTarget } from "@/lib/types/panel";
 
 type RouteContext = {
@@ -30,17 +29,6 @@ export async function PUT(request: Request, context: RouteContext) {
     discountTarget,
   });
 
-  const supabase = createSupabaseServiceClient();
-  if (supabase) {
-    await supabase
-      .from("menu_items")
-      .update({
-        discount_percent: discountTarget === "both" ? null : Math.max(0, Math.min(90, Math.round(discountPercent))),
-        discount_target: discountTarget === "both" ? null : discountTarget,
-      })
-      .eq("id", itemId);
-  }
-
   return NextResponse.json({
     offer: {
       itemId,
@@ -58,17 +46,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
   }
 
   await saveMenuItemOffer(itemId, undefined);
-
-  const supabase = createSupabaseServiceClient();
-  if (supabase) {
-    await supabase
-      .from("menu_items")
-      .update({
-        discount_percent: null,
-        discount_target: null,
-      })
-      .eq("id", itemId);
-  }
 
   return NextResponse.json({ ok: true });
 }

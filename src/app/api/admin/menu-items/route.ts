@@ -11,8 +11,6 @@ type CreateMenuItemBody = {
   simplePrice: number;
   doublePrice: number;
   badgeText?: string;
-  discountTarget?: "simple" | "double";
-  discountPercent?: number;
 };
 
 type MenuItemRow = {
@@ -22,8 +20,6 @@ type MenuItemRow = {
   image: string;
   simple_price: number;
   double_price: number;
-  discount_target: "simple" | "double" | null;
-  discount_percent: number | null;
   status: "active" | "paused";
 };
 
@@ -45,11 +41,9 @@ export async function POST(request: Request) {
       image: optimizedImage,
       simple_price: body.simplePrice,
       double_price: body.doublePrice,
-      discount_target: body.discountPercent ? body.discountTarget ?? null : null,
-      discount_percent: body.discountPercent && body.discountPercent > 0 ? body.discountPercent : null,
       status: "active",
     })
-    .select("id,name,description,image,simple_price,double_price,discount_target,discount_percent,status")
+    .select("id,name,description,image,simple_price,double_price,status")
     .single<MenuItemRow>();
 
   if (error || !data) {
@@ -70,8 +64,6 @@ function mapMenuItemRow(row: MenuItemRow, badgeText?: string): MenuItemAdmin {
     simplePrice: row.simple_price,
     doublePrice: row.double_price,
     badgeText,
-    discountTarget: row.discount_target ?? undefined,
-    discountPercent: row.discount_percent ?? undefined,
     status: row.status,
   };
 }

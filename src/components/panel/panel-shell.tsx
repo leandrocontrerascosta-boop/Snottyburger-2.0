@@ -113,6 +113,7 @@ export function PanelShell({
         </header>
 
         <StoreStatusControl
+          key={`${storeAvailabilitySettings.openTime}-${storeAvailabilitySettings.closeTime}`}
           settings={storeAvailabilitySettings}
           state={storeAvailability}
           onSetOverride={setStoreOverride}

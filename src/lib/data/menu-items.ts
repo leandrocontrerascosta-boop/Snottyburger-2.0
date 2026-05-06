@@ -13,8 +13,6 @@ type MenuItemRow = {
   created_at?: string | null;
   simple_price: number;
   double_price: number;
-  discount_target: MenuDiscountTarget | null;
-  discount_percent: number | null;
   status: "active" | "paused";
 };
 

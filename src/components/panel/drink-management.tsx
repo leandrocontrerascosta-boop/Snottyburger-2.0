@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState, type FormEvent } from "react";
 import { ImageUploadField } from "@/components/panel/image-upload-field";
 import { formatCurrency } from "@/lib/pricing/order-pricing";
@@ -277,10 +278,8 @@ function ItemImagePreview({ src, alt, compact = false }: { src: string; alt: str
   }
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={`rounded-lg border border-[var(--line)] bg-white object-cover ${compact ? "h-10 w-10" : "h-24 w-full"}`}
-    />
+    <div className={`relative overflow-hidden rounded-lg border border-[var(--line)] bg-white ${compact ? "h-10 w-10" : "h-24 w-full"}`}>
+      <Image src={src} alt={alt} fill sizes={compact ? "40px" : "320px"} className="object-cover" />
+    </div>
   );
 }

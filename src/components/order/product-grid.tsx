@@ -6,11 +6,10 @@ type ProductGridProps = {
     category: Category;
     products: Product[];
   }>;
-  topProductIds: Set<string>;
   onSelectProduct: (product: Product) => void;
 };
 
-export function ProductGrid({ sections, topProductIds, onSelectProduct }: ProductGridProps) {
+export function ProductGrid({ sections, onSelectProduct }: ProductGridProps) {
   return (
     <div className="space-y-8 sm:space-y-10" role="region" aria-label="Secciones de productos">
       <nav className="sticky top-2 z-20 -mx-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)]/95 px-2 py-2 shadow-[0_18px_30px_rgba(31,22,18,0.08)] backdrop-blur md:hidden">
@@ -42,7 +41,7 @@ export function ProductGrid({ sections, topProductIds, onSelectProduct }: Produc
                 product={product}
                 onSelect={onSelectProduct}
                 priority={sectionIndex === 0 && index === 0}
-                badges={getProductBadges(product, topProductIds)}
+                badges={getProductBadges(product)}
               />
             ))}
           </div>
@@ -52,8 +51,7 @@ export function ProductGrid({ sections, topProductIds, onSelectProduct }: Produc
   );
 }
 
-function getProductBadges(product: Product, topProductIds: Set<string>): string[] {
-  void topProductIds;
+function getProductBadges(product: Product): string[] {
   const badges: string[] = [];
 
   if (product.badgeText) {

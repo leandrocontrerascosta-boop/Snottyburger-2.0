@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ManualStoreOverride, StoreAvailabilityState } from "@/lib/store/store-availability";
 import type { StoreAvailabilitySettings } from "@/lib/store/store-availability";
 import { formatStoreScheduleLabel } from "@/lib/store/store-availability";
@@ -17,11 +17,6 @@ export function StoreStatusControl({ settings, state, onSetOverride, onSaveSched
   const [closeTime, setCloseTime] = useState(settings.closeTime);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    setOpenTime(settings.openTime);
-    setCloseTime(settings.closeTime);
-  }, [settings.closeTime, settings.openTime]);
 
   const statusLabel = state.isOpen ? "Abierto" : "Cerrado";
   const statusClass = state.isOpen

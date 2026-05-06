@@ -11,7 +11,7 @@ import {
   promoBanner,
 } from "@/lib/order/catalog";
 import type { DeliveryRate } from "@/lib/types/delivery";
-import type { DrinkItemAdmin, MenuItemAdmin, PromoAdmin, SaleRecord } from "@/lib/types/panel";
+import type { DrinkItemAdmin, MenuItemAdmin, PromoAdmin } from "@/lib/types/panel";
 import type { ModifierGroup, Product } from "@/lib/types/order";
 import { CartProvider, useCart } from "@/lib/store/cart-store";
 import { formatStoreScheduleLabel } from "@/lib/store/store-availability";
@@ -29,14 +29,12 @@ type OrderScreenProps = {
   allProducts: Product[];
   deliveryRates: DeliveryRate[];
   promos: PromoAdmin[];
-  salesRecords: SaleRecord[];
 };
 
 function OrderScreen({
   allProducts,
   deliveryRates,
   promos,
-  salesRecords,
 }: OrderScreenProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedPromoProduct, setSelectedPromoProduct] = useState<Product | null>(null);
@@ -72,31 +70,6 @@ function OrderScreen({
   const productsById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
   const deals = useMemo(() => buildPromoDeals(promos, products), [products, promos]);
   const activeModalProduct = selectedProduct ?? selectedPromoProduct;
-  const topProductIds = useMemo(() => {
-    const quantityByProduct = new Map<string, number>();
-
-    for (const record of salesRecords) {
-      if (record.status !== "paid") {
-        continue;
-      }
-
-      for (const item of record.items) {
-        const product = productsById.get(item.productId);
-        if (!product || product.categoryId !== "burgers") {
-          continue;
-        }
-
-        quantityByProduct.set(item.productId, (quantityByProduct.get(item.productId) ?? 0) + item.quantity);
-      }
-    }
-
-    return new Set(
-      Array.from(quantityByProduct.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([productId]) => productId),
-    );
-  }, [productsById, salesRecords]);
 
   useEffect(() => {
     document.body.style.overflow = "";
@@ -126,7 +99,7 @@ function OrderScreen({
     <div className="page-shell overflow-x-hidden pb-24 lg:pb-0">
       <LocationSheet
         open={locationSheetOpen}
-          locations={locationsWithSchedule}
+        locations={locationsWithSchedule}
         activeLocationId={selectedLocation.id}
         onClose={() => setLocationSheetOpen(false)}
         onSelectLocation={setSelectedLocationId}
@@ -158,7 +131,7 @@ function OrderScreen({
               onSelectProduct={setSelectedProduct}
               onSelectPromo={setSelectedPromoProduct}
             />
-            <ProductGrid sections={productSections} topProductIds={topProductIds} onSelectProduct={setSelectedProduct} />
+            <ProductGrid sections={productSections} onSelectProduct={setSelectedProduct} />
           </div>
 
           <div className="hidden lg:block">
@@ -231,7 +204,6 @@ type OrderExperienceProps = {
   initialDrinkItems: DrinkItemAdmin[];
   initialMenuItems: MenuItemAdmin[];
   initialPromos: PromoAdmin[];
-  initialSalesRecords: SaleRecord[];
 };
 
 export function OrderExperience({
@@ -240,7 +212,6 @@ export function OrderExperience({
   initialDrinkItems,
   initialMenuItems,
   initialPromos,
-  initialSalesRecords,
 }: OrderExperienceProps) {
   const products = useMemo(() => {
     const coreProducts = buildOrderProducts(initialMenuItems, initialDrinkItems, initialBurgerModifierGroups);
@@ -254,7 +225,6 @@ export function OrderExperience({
         allProducts={products}
         deliveryRates={initialDeliveryRates}
         promos={initialPromos}
-        salesRecords={initialSalesRecords}
       />
     </CartProvider>
   );
