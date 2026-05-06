@@ -21,3 +21,10 @@ values (
   '{"manualOverride": "none", "openTime": "20:30", "closeTime": "00:30"}'::jsonb
 )
 on conflict (key) do nothing;
+
+insert into public.site_settings (key, value)
+values (
+  'menu-item-offers',
+  '{}'::jsonb
+)
+on conflict (key) do nothing;

@@ -53,14 +53,11 @@ export function ProductGrid({ sections, topProductIds, onSelectProduct }: Produc
 }
 
 function getProductBadges(product: Product, topProductIds: Set<string>): string[] {
+  void topProductIds;
   const badges: string[] = [];
 
   if (product.badgeText) {
     badges.push(product.badgeText);
-  }
-
-  if (product.discountPercent && product.discountPercent > 0) {
-    badges.push("Descuento");
   }
 
   return Array.from(new Set(badges)).slice(0, 2);

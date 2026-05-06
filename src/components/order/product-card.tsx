@@ -22,13 +22,7 @@ export function ProductCard({ product, onSelect, priority = false, badges = [] }
             {badges.map((badge) => (
               <span
                 key={badge}
-                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white sm:text-[11px] ${
-                  badge === "Top"
-                    ? "bg-[var(--brand)]"
-                    : badge === "Picante"
-                      ? "bg-[#d3541f]"
-                      : "bg-[#1f6a5b]"
-                }`}
+                className="rounded-full bg-[var(--brand)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white sm:text-[11px]"
               >
                 {badge}
               </span>

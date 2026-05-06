@@ -1,6 +1,6 @@
 export type EntityStatus = "active" | "paused";
 
-export type MenuDiscountTarget = "simple" | "double";
+export type MenuDiscountTarget = "simple" | "double" | "both";
 
 export type MenuItemAdmin = {
   id: string;

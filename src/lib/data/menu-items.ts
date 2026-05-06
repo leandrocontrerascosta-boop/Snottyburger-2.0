@@ -1,5 +1,6 @@
 import "server-only";
 import { fetchMenuItemBadgeMap } from "@/lib/data/menu-item-badges";
+import { fetchMenuItemOfferMap } from "@/lib/data/menu-item-offers";
 import { initialMenuItems } from "@/lib/mocks/panel-data";
 import type { MenuDiscountTarget, MenuItemAdmin } from "@/lib/types/panel";
 import { createSupabasePublicClient } from "@/lib/supabase/public-client";
@@ -19,8 +20,16 @@ type MenuItemRow = {
 
 export async function fetchMenuItems(options?: { activeOnly?: boolean }): Promise<MenuItemAdmin[]> {
   const fallbackBase = options?.activeOnly ? initialMenuItems.filter((item) => item.status === "active") : initialMenuItems;
-  const badgeMap = await fetchMenuItemBadgeMap();
-  const fallback = fallbackBase.map((item) => ({ ...item, badgeText: badgeMap[item.id] }));
+  const [badgeMap, offerMap] = await Promise.all([fetchMenuItemBadgeMap(), fetchMenuItemOfferMap()]);
+  const fallback = fallbackBase.map((item) => {
+    const offer = offerMap[item.id];
+    return {
+      ...item,
+      badgeText: badgeMap[item.id],
+      discountTarget: offer?.discountTarget ?? item.discountTarget,
+      discountPercent: offer?.discountPercent ?? item.discountPercent,
+    };
+  });
   const supabase = createSupabasePublicClient();
 
   if (!supabase) {
@@ -42,11 +51,17 @@ export async function fetchMenuItems(options?: { activeOnly?: boolean }): Promis
     return fallback;
   }
 
-  const mapped = data.map((row) => mapMenuItemRow(row, badgeMap));
+  const mapped = data.map((row) => mapMenuItemRow(row, badgeMap, offerMap));
   return mapped.length > 0 ? mapped : fallback;
 }
 
-function mapMenuItemRow(row: MenuItemRow, badgeMap: Record<string, string>): MenuItemAdmin {
+function mapMenuItemRow(
+  row: MenuItemRow,
+  badgeMap: Record<string, string>,
+  offerMap: Record<string, { discountTarget: MenuDiscountTarget; discountPercent: number }>,
+): MenuItemAdmin {
+  const offer = offerMap[row.id];
+
   return {
     id: row.id,
     name: row.name,
@@ -56,8 +71,8 @@ function mapMenuItemRow(row: MenuItemRow, badgeMap: Record<string, string>): Men
     simplePrice: row.simple_price,
     doublePrice: row.double_price,
     badgeText: badgeMap[row.id],
-    discountTarget: row.discount_target ?? undefined,
-    discountPercent: row.discount_percent ?? undefined,
+    discountTarget: offer?.discountTarget ?? row.discount_target ?? undefined,
+    discountPercent: offer?.discountPercent ?? row.discount_percent ?? undefined,
     status: row.status,
   };
 }

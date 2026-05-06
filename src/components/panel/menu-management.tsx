@@ -3,7 +3,7 @@
 import { useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { ImageUploadField } from "@/components/panel/image-upload-field";
 import { formatCurrency } from "@/lib/pricing/order-pricing";
-import type { MenuDiscountTarget, MenuItemAdmin } from "@/lib/types/panel";
+import type { MenuItemAdmin } from "@/lib/types/panel";
 
 export type MenuItemDraft = {
   name: string;
@@ -12,8 +12,6 @@ export type MenuItemDraft = {
   simplePrice: number;
   doublePrice: number;
   badgeText?: string;
-  discountTarget?: MenuDiscountTarget;
-  discountPercent?: number;
 };
 
 type MenuManagementProps = {
@@ -53,8 +51,6 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
       description: draft.description.trim(),
       image: draft.image.trim(),
       badgeText: draft.badgeText?.trim() || undefined,
-      discountPercent: draft.discountPercent && draft.discountPercent > 0 ? draft.discountPercent : undefined,
-      discountTarget: draft.discountPercent && draft.discountPercent > 0 ? draft.discountTarget : undefined,
     };
 
     onCreateItem(normalizedDraft);
@@ -71,8 +67,6 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
       simplePrice: item.simplePrice,
       doublePrice: item.doublePrice,
       badgeText: item.badgeText,
-      discountTarget: item.discountTarget,
-      discountPercent: item.discountPercent,
     });
   }
 
@@ -98,8 +92,6 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
       description: editDraft.description.trim(),
       image: editDraft.image.trim(),
       badgeText: editDraft.badgeText?.trim() || undefined,
-      discountPercent: editDraft.discountPercent && editDraft.discountPercent > 0 ? editDraft.discountPercent : undefined,
-      discountTarget: editDraft.discountPercent && editDraft.discountPercent > 0 ? editDraft.discountTarget : undefined,
     });
 
     closeEditModal();
@@ -189,9 +181,6 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
               <ItemImagePreview src={item.image} alt={item.name} />
               <p className="break-all">Imagen: {item.image}</p>
               <p>Etiqueta: {item.badgeText ?? "Sin etiqueta"}</p>
-              <p>
-                Descuento: {item.discountPercent && item.discountTarget ? `${item.discountPercent}% en ${item.discountTarget}` : "Sin descuento"}
-              </p>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -231,7 +220,6 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
               <th className="px-3 py-3">Simple</th>
               <th className="px-3 py-3">Doble</th>
               <th className="px-3 py-3">Etiqueta</th>
-              <th className="px-3 py-3">Descuento</th>
               <th className="px-3 py-3">Estado</th>
               <th className="px-3 py-3">Acciones</th>
             </tr>
@@ -250,9 +238,6 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
                 <td className="px-3 py-3">{formatCurrency(item.simplePrice)}</td>
                 <td className="px-3 py-3">{formatCurrency(item.doublePrice)}</td>
                 <td className="px-3 py-3 text-xs">{item.badgeText ?? "Sin etiqueta"}</td>
-                <td className="px-3 py-3 text-xs">
-                  {item.discountPercent && item.discountTarget ? `${item.discountPercent}% en ${item.discountTarget}` : "Sin descuento"}
-                </td>
                 <td className="px-3 py-3">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
@@ -395,40 +380,6 @@ function MenuFormFields({ draft, onChange }: MenuFormFieldsProps) {
           onChange={(event) => onChange((prev) => ({ ...prev, badgeText: event.target.value }))}
           className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none ring-[var(--brand)]/40 transition focus:ring-2"
           placeholder="Ej: TOP, NUEVA, PICANTE"
-        />
-      </label>
-
-      <label className="space-y-1 text-sm font-medium">
-        Descuento en precio
-        <select
-          value={draft.discountTarget ?? "none"}
-          onChange={(event) =>
-            onChange((prev) => ({
-              ...prev,
-              discountTarget: event.target.value === "none" ? undefined : (event.target.value as MenuDiscountTarget),
-            }))
-          }
-          className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none ring-[var(--brand)]/40 transition focus:ring-2"
-        >
-          <option value="none">Sin descuento</option>
-          <option value="simple">Simple</option>
-          <option value="double">Doble</option>
-        </select>
-      </label>
-
-      <label className="space-y-1 text-sm font-medium">
-        Porcentaje descuento
-        <input
-          type="number"
-          min={0}
-          max={90}
-          value={draft.discountPercent ?? ""}
-          onChange={(event) => {
-            const nextValue = Number(event.target.value);
-            onChange((prev) => ({ ...prev, discountPercent: Number.isNaN(nextValue) ? undefined : nextValue }));
-          }}
-          className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none ring-[var(--brand)]/40 transition focus:ring-2"
-          placeholder="10"
         />
       </label>
     </>

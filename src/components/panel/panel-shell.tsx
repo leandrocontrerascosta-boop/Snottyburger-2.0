@@ -11,16 +11,18 @@ import type { DrinkItemAdmin, EntityStatus, ExtraItemAdmin, MenuItemAdmin, Promo
 import { DrinkManagement, type DrinkDraft } from "@/components/panel/drink-management";
 import { MetricsCenter } from "@/components/panel/metrics-center";
 import { MenuManagement, type MenuItemDraft } from "@/components/panel/menu-management";
+import { OffersManagement } from "@/components/panel/offers-management";
 import { PromoManagement, type PromoDraft } from "@/components/panel/promo-management";
 import { SalesCenter } from "@/components/panel/sales-center";
 import { StoreStatusControl } from "@/components/panel/store-status-control";
 import { StoryEditor } from "@/components/panel/story-editor";
 import { useStoreAvailability } from "@/lib/store/use-store-availability";
 
-type PanelTab = "menu" | "extras" | "drinks" | "story" | "promos" | "sales" | "metrics" | "delivery";
+type PanelTab = "menu" | "offers" | "extras" | "drinks" | "story" | "promos" | "sales" | "metrics" | "delivery";
 
 const tabs: Array<{ id: PanelTab; label: string }> = [
   { id: "menu", label: "Menu" },
+  { id: "offers", label: "Ofertas" },
   { id: "extras", label: "Extras" },
   { id: "drinks", label: "Bebidas" },
   { id: "story", label: "Nuestra Historia" },
@@ -105,7 +107,7 @@ export function PanelShell({
             Control profesional de menu, contenido y promociones
           </h1>
           <p className="mt-2 max-w-3xl text-[13px] leading-6 text-[var(--muted)] sm:text-sm md:text-base">
-            Gestiona productos, precios simples/dobles, descuentos, historia de marca, promos y la vista
+            Gestiona productos, ofertas por burger, historia de marca, promos y la vista
             de ventas filtrable para integrar tus datos cuando quieras.
           </p>
         </header>
@@ -222,6 +224,66 @@ export function PanelShell({
                 setMenuItems((prev) => prev.map((item) => (item.id === itemId ? payload.item : item)));
               } catch (error) {
                 console.error("No se pudo actualizar el estado del producto", error);
+              }
+            }}
+          />
+        ) : null}
+
+        {activeTab === "offers" ? (
+          <OffersManagement
+            items={menuItems}
+            onSaveOffer={async (draft) => {
+              try {
+                const response = await fetch(`/api/admin/menu-item-offers/${draft.itemId}`, {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(draft),
+                });
+
+                if (!response.ok) {
+                  return;
+                }
+
+                setMenuItems((prev) =>
+                  prev.map((item) =>
+                    item.id === draft.itemId
+                      ? {
+                          ...item,
+                          discountPercent: Math.max(1, Math.min(90, Math.round(draft.discountPercent))),
+                          discountTarget: draft.discountTarget,
+                        }
+                      : item,
+                  ),
+                );
+              } catch (error) {
+                console.error("No se pudo guardar la oferta", error);
+              }
+            }}
+            onRemoveOffer={async (itemId) => {
+              try {
+                const response = await fetch(`/api/admin/menu-item-offers/${itemId}`, {
+                  method: "DELETE",
+                });
+
+                if (!response.ok) {
+                  return;
+                }
+
+                setMenuItems((prev) =>
+                  prev.map((item) =>
+                    item.id === itemId
+                      ? {
+                          ...item,
+                          discountPercent: undefined,
+                          discountTarget: undefined,
+                        }
+                      : item,
+                  ),
+                );
+              } catch (error) {
+                console.error("No se pudo eliminar la oferta", error);
               }
             }}
           />

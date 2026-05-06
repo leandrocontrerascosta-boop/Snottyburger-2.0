@@ -66,8 +66,9 @@ export function buildBurgerProductsWithModifiers(menuItems: MenuItemAdmin[], sha
     .filter((item) => item.status === "active")
     .map((item) => {
       const discountPercent = normalizeDiscountPercent(item.discountPercent);
-      const hasSimpleDiscount = discountPercent > 0 && item.discountTarget === "simple";
-      const hasDoubleDiscount = discountPercent > 0 && item.discountTarget === "double";
+      const discountTarget = item.discountTarget;
+      const hasSimpleDiscount = discountPercent > 0 && (discountTarget === "simple" || discountTarget === "both");
+      const hasDoubleDiscount = discountPercent > 0 && (discountTarget === "double" || discountTarget === "both");
 
       const simplePrice = hasSimpleDiscount ? applyPercentDiscount(item.simplePrice, discountPercent) : item.simplePrice;
       const doublePrice = hasDoubleDiscount ? applyPercentDiscount(item.doublePrice, discountPercent) : item.doublePrice;
@@ -170,7 +171,7 @@ export function buildPromoDeals(promos: PromoAdmin[], products: Product[]): Prom
     }));
 
   const autoDiscountDeals: PromoDeal[] = products
-    .filter((product) => product.categoryId === "burgers" && product.discountPercent && product.originalPrice)
+    .filter((product) => product.categoryId === "burgers" && product.discountPercent)
     .map((product) => ({
       id: `auto-discount-${product.id}`,
       productId: product.id,
