@@ -46,7 +46,7 @@ export async function fetchMenuItems(options?: { activeOnly?: boolean }): Promis
   return mapped.length > 0 ? mapped : fallback;
 }
 
-function mapMenuItemRow(row: MenuItemRow, badgeMap: Record<string, "Top" | "Nuevo">): MenuItemAdmin {
+function mapMenuItemRow(row: MenuItemRow, badgeMap: Record<string, string>): MenuItemAdmin {
   return {
     id: row.id,
     name: row.name,

@@ -14,6 +14,7 @@ import type { DeliveryRate } from "@/lib/types/delivery";
 import type { DrinkItemAdmin, MenuItemAdmin, PromoAdmin, SaleRecord } from "@/lib/types/panel";
 import type { ModifierGroup, Product } from "@/lib/types/order";
 import { CartProvider, useCart } from "@/lib/store/cart-store";
+import { formatStoreScheduleLabel } from "@/lib/store/store-availability";
 import { useStoreAvailability } from "@/lib/store/use-store-availability";
 import { CartDrawer } from "@/components/order/cart-drawer";
 import { DiscountPromoRow } from "@/components/order/discount-promo-row";
@@ -43,14 +44,18 @@ function OrderScreen({
   const [locationSheetOpen, setLocationSheetOpen] = useState(false);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
   const { itemCount, addItem } = useCart();
-  const { state: storeAvailability } = useStoreAvailability();
+  const { settings: storeSettings, state: storeAvailability } = useStoreAvailability();
   const canOrder = storeAvailability.isOpen;
   const closedMessage = "El local esta cerrado por el momento.";
   const products = allProducts;
+  const locationsWithSchedule = useMemo(
+    () => locations.map((location) => ({ ...location, hours: formatStoreScheduleLabel(storeSettings) })),
+    [storeSettings],
+  );
 
   const selectedLocation = useMemo(
-    () => locations.find((location) => location.id === selectedLocationId) ?? locations[0],
-    [selectedLocationId],
+    () => locationsWithSchedule.find((location) => location.id === selectedLocationId) ?? locationsWithSchedule[0],
+    [locationsWithSchedule, selectedLocationId],
   );
 
   const productSections = useMemo(
@@ -121,7 +126,7 @@ function OrderScreen({
     <div className="page-shell overflow-x-hidden pb-24 lg:pb-0">
       <LocationSheet
         open={locationSheetOpen}
-        locations={locations}
+          locations={locationsWithSchedule}
         activeLocationId={selectedLocation.id}
         onClose={() => setLocationSheetOpen(false)}
         onSelectLocation={setSelectedLocationId}

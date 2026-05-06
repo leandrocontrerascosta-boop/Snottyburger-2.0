@@ -1,37 +1,25 @@
 import { NextResponse } from "next/server";
-import type { ManualStoreOverride } from "@/lib/store/store-availability";
-
-type StoreAvailabilityApiPayload = {
-  manualOverride: ManualStoreOverride;
-  lastResetDate?: string;
-};
-
-let sharedState: StoreAvailabilityApiPayload = {
-  manualOverride: "none",
-};
+import {
+  normalizeStoreAvailabilitySettings,
+  type StoreAvailabilitySettings,
+} from "@/lib/store/store-availability";
+import {
+  fetchStoreAvailabilitySettings,
+  saveStoreAvailabilitySettingsToServer,
+} from "@/lib/data/store-availability-settings";
 
 export async function GET() {
-  return NextResponse.json({ settings: sharedState });
+  const settings = await fetchStoreAvailabilitySettings();
+  return NextResponse.json({ settings });
 }
 
 export async function PUT(request: Request) {
-  const body = (await request.json()) as Partial<StoreAvailabilityApiPayload>;
+  const body = (await request.json()) as Partial<StoreAvailabilitySettings>;
+  const next = await saveStoreAvailabilitySettingsToServer(normalizeStoreAvailabilitySettings(body));
 
-  const manualOverride = parseManualOverride(body.manualOverride);
-  const lastResetDate = typeof body.lastResetDate === "string" ? body.lastResetDate : undefined;
-
-  sharedState = {
-    manualOverride,
-    lastResetDate,
-  };
-
-  return NextResponse.json({ settings: sharedState });
-}
-
-function parseManualOverride(value: unknown): ManualStoreOverride {
-  if (value === "force-open" || value === "force-closed") {
-    return value;
+  if (!next) {
+    return NextResponse.json({ error: "No se pudo guardar la configuracion del local" }, { status: 500 });
   }
 
-  return "none";
+  return NextResponse.json({ settings: next });
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { saveMenuItemBadge, type MenuItemBadge } from "@/lib/data/menu-item-badges";
+import { saveMenuItemBadge } from "@/lib/data/menu-item-badges";
 import { ensureWebOptimizedImage } from "@/lib/images/ensure-web-image";
 import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 import type { MenuItemAdmin } from "@/lib/types/panel";
@@ -10,7 +10,7 @@ type CreateMenuItemBody = {
   image: string;
   simplePrice: number;
   doublePrice: number;
-  badgeText?: MenuItemBadge;
+  badgeText?: string;
   discountTarget?: "simple" | "double";
   discountPercent?: number;
 };
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   return NextResponse.json({ item: mapMenuItemRow(data, body.badgeText) });
 }
 
-function mapMenuItemRow(row: MenuItemRow, badgeText?: MenuItemBadge): MenuItemAdmin {
+function mapMenuItemRow(row: MenuItemRow, badgeText?: string): MenuItemAdmin {
   return {
     id: row.id,
     name: row.name,

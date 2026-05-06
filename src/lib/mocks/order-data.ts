@@ -123,7 +123,7 @@ export const locations: Location[] = [
     name: "Snottyburger Catamarca",
     address: "Waldino Correa 493",
     area: "San Fernando del Valle de Catamarca, Catamarca",
-    hours: "Lunes a Lunes · 20:00 a 01:00",
+    hours: "Lunes a Lunes · 20:30 a 00:30",
     phone: "(383) 456-7788",
     whatsappPhone: "543834567788",
     coordinates: { lat: -28.4533331, lng: -65.7516701 },

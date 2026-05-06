@@ -1,4 +1,4 @@
-import { categories, locations, products as fallbackProducts, promoBanner, promoDeals, recommendations } from "@/lib/mocks/order-data";
+import { categories, locations, products as fallbackProducts, promoBanner, recommendations } from "@/lib/mocks/order-data";
 import type { DrinkItemAdmin, MenuItemAdmin, PromoAdmin } from "@/lib/types/panel";
 import type { ModifierGroup, Product, PromoDeal } from "@/lib/types/order";
 
@@ -141,26 +141,33 @@ export function getPromoProductId(promoId: string) {
 }
 
 export function buildPromoDeals(promos: PromoAdmin[], products: Product[]): PromoDeal[] {
-  const productIds = new Set(products.map((product) => product.id));
+  const promoDealsFromAdmin: PromoDeal[] = promos
+    .filter((promo) => promo.status === "active")
+    .map((promo) => ({
+      id: promo.id,
+      promoProductId: getPromoProductId(promo.id),
+      title: promo.title,
+      description: promo.description,
+      image: promo.image,
+      badge: promo.badgeText ?? (promo.isCombo ? "Combo" : "Promo"),
+      ctaLabel: "Ver promo",
+      promoLabel: formatPromoPrice(promo.simplePrice),
+      originalPrice: promo.doublePrice > promo.simplePrice ? promo.doublePrice : undefined,
+    }));
 
-  const promoDealsFromAdmin: PromoDeal[] =
-    promos.length === 0
-      ? (() => {
-          return promoDeals.filter((deal) => deal.productId && productIds.has(deal.productId));
-        })()
-      : promos
-          .filter((promo) => promo.status === "active")
-          .map((promo) => ({
-            id: promo.id,
-            promoProductId: getPromoProductId(promo.id),
-            title: promo.title,
-            description: promo.description,
-            image: promo.image,
-            badge: promo.badgeText ?? (promo.isCombo ? "Combo" : "Promo"),
-            ctaLabel: "Ver promo",
-            promoLabel: formatPromoPrice(promo.simplePrice),
-            originalPrice: promo.doublePrice > promo.simplePrice ? promo.doublePrice : undefined,
-          }));
+  const taggedDeals: PromoDeal[] = products
+    .filter((product) => product.categoryId === "burgers" && product.badgeText)
+    .map((product) => ({
+      id: `tagged-${product.id}`,
+      productId: product.id,
+      title: product.name,
+      description: `Marcada como ${product.badgeText} desde Menu.`,
+      image: product.image,
+      badge: product.badgeText ?? "Destacado",
+      ctaLabel: "Ver detalle",
+      promoLabel: formatPromoPrice(product.price),
+      originalPrice: product.originalPrice,
+    }));
 
   const autoDiscountDeals: PromoDeal[] = products
     .filter((product) => product.categoryId === "burgers" && product.discountPercent && product.originalPrice)
@@ -176,7 +183,7 @@ export function buildPromoDeals(promos: PromoAdmin[], products: Product[]): Prom
       originalPrice: product.originalPrice,
     }));
 
-  const merged: PromoDeal[] = [...autoDiscountDeals, ...promoDealsFromAdmin];
+  const merged: PromoDeal[] = [...taggedDeals, ...autoDiscountDeals, ...promoDealsFromAdmin];
   const deduped = new Map<string, PromoDeal>();
   for (const deal of merged) {
     const key = deal.productId ?? deal.promoProductId ?? deal.id;

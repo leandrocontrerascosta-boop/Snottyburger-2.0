@@ -14,3 +14,10 @@ values (
   '{"title": "Nuestra Historia", "body": "Snottyburger arranco como una cocina chica obsesionada por hacer la burger perfecta: pan suave, carne con sello propio y salsas caseras. Hoy seguimos con la misma regla: todo fresco, sin atajos y con sabor real.", "updatedAt": "2026-01-01T00:00:00.000Z"}'::jsonb
 )
 on conflict (key) do nothing;
+
+insert into public.site_settings (key, value)
+values (
+  'store-availability',
+  '{"manualOverride": "none", "openTime": "20:30", "closeTime": "00:30"}'::jsonb
+)
+on conflict (key) do nothing;

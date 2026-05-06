@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { saveMenuItemBadge, type MenuItemBadge } from "@/lib/data/menu-item-badges";
+import { saveMenuItemBadge } from "@/lib/data/menu-item-badges";
 import { ensureWebOptimizedImage } from "@/lib/images/ensure-web-image";
 import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 import type { MenuItemAdmin } from "@/lib/types/panel";
@@ -10,7 +10,7 @@ type UpdateMenuItemBody = Partial<{
   image: string;
   simplePrice: number;
   doublePrice: number;
-  badgeText?: MenuItemBadge;
+  badgeText?: string;
   discountTarget?: "simple" | "double";
   discountPercent?: number;
   status: "active" | "paused";
@@ -108,7 +108,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
   return NextResponse.json({ ok: true });
 }
 
-function mapMenuItemRow(row: MenuItemRow, badgeText?: MenuItemBadge): MenuItemAdmin {
+function mapMenuItemRow(row: MenuItemRow, badgeText?: string): MenuItemAdmin {
   return {
     id: row.id,
     name: row.name,

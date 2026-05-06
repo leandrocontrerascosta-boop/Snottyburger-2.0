@@ -10,7 +10,7 @@ export type MenuItemAdmin = {
   createdAt?: string;
   simplePrice: number;
   doublePrice: number;
-  badgeText?: "Top" | "Nuevo";
+  badgeText?: string;
   discountTarget?: MenuDiscountTarget;
   discountPercent?: number;
   status: EntityStatus;

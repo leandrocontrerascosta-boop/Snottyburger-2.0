@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   getStoreAvailabilityState,
+  normalizeStoreAvailabilitySettings,
   STORE_AVAILABILITY_EVENT,
   type ManualStoreOverride,
   runStoreAvailabilityRefresh,
@@ -16,6 +17,7 @@ type UseStoreAvailabilityValue = {
   settings: StoreAvailabilitySettings;
   state: StoreAvailabilityState;
   setOverride: (override: ManualStoreOverride) => void;
+  saveSettings: (patch: Partial<StoreAvailabilitySettings>) => Promise<void>;
 };
 
 export function useStoreAvailability(): UseStoreAvailabilityValue {
@@ -39,13 +41,7 @@ export function useStoreAvailability(): UseStoreAvailabilityValue {
           settings?: Partial<StoreAvailabilitySettings>;
         };
 
-        const incoming: StoreAvailabilitySettings = {
-          manualOverride:
-            payload.settings?.manualOverride === "force-open" || payload.settings?.manualOverride === "force-closed"
-              ? payload.settings.manualOverride
-              : "none",
-          lastResetDate: typeof payload.settings?.lastResetDate === "string" ? payload.settings.lastResetDate : undefined,
-        };
+        const incoming = normalizeStoreAvailabilitySettings(payload.settings);
 
         saveStoreAvailabilitySettings(incoming);
         setSnapshot({
@@ -77,17 +73,45 @@ export function useStoreAvailability(): UseStoreAvailabilityValue {
       settings: snapshot.settings,
       state: snapshot.state,
       setOverride: (override) => {
+        const next = normalizeStoreAvailabilitySettings({
+          ...snapshot.settings,
+          manualOverride: override,
+        });
+
         setManualStoreOverride(override);
-        setSnapshot(runStoreAvailabilityRefresh());
+        saveStoreAvailabilitySettings(next);
+        setSnapshot({
+          settings: next,
+          state: getStoreAvailabilityState(next),
+        });
 
         void fetch("/api/admin/store-availability", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...runStoreAvailabilityRefresh().settings,
-            manualOverride: override,
-          }),
+          body: JSON.stringify(next),
         });
+      },
+      saveSettings: async (patch) => {
+        const next = normalizeStoreAvailabilitySettings({
+          ...snapshot.settings,
+          ...patch,
+        });
+
+        saveStoreAvailabilitySettings(next);
+        setSnapshot({
+          settings: next,
+          state: getStoreAvailabilityState(next),
+        });
+
+        const response = await fetch("/api/admin/store-availability", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(next),
+        });
+
+        if (!response.ok) {
+          throw new Error("No se pudo guardar la configuracion del local");
+        }
       },
     };
   }, [snapshot]);

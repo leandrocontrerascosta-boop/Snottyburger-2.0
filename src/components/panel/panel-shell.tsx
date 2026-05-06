@@ -54,7 +54,7 @@ export function PanelShell({
     document.documentElement.style.overflow = "";
   }, []);
 
-  const { state: storeAvailability, setOverride: setStoreOverride } = useStoreAvailability();
+  const { settings: storeAvailabilitySettings, state: storeAvailability, setOverride: setStoreOverride, saveSettings: saveStoreSettings } = useStoreAvailability();
   const [activeTab, setActiveTab] = useState<PanelTab>("menu");
   const [menuItems, setMenuItems] = useState(initialMenuItems);
   const [extraItems, setExtraItems] = useState(initialExtraItems);
@@ -110,7 +110,14 @@ export function PanelShell({
           </p>
         </header>
 
-        <StoreStatusControl state={storeAvailability} onSetOverride={setStoreOverride} />
+        <StoreStatusControl
+          settings={storeAvailabilitySettings}
+          state={storeAvailability}
+          onSetOverride={setStoreOverride}
+          onSaveSchedule={async (schedule) => {
+            await saveStoreSettings(schedule);
+          }}
+        />
 
         <nav className="no-scrollbar overflow-x-auto rounded-[22px] border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-[0_14px_30px_rgba(31,22,18,0.08)] sm:rounded-2xl sm:p-2">
           <ul className="flex min-w-max gap-2">

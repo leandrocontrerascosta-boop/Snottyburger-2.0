@@ -11,7 +11,7 @@ export type MenuItemDraft = {
   image: string;
   simplePrice: number;
   doublePrice: number;
-  badgeText?: "Top" | "Nuevo";
+  badgeText?: string;
   discountTarget?: MenuDiscountTarget;
   discountPercent?: number;
 };
@@ -52,6 +52,7 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
       name: draft.name.trim(),
       description: draft.description.trim(),
       image: draft.image.trim(),
+      badgeText: draft.badgeText?.trim() || undefined,
       discountPercent: draft.discountPercent && draft.discountPercent > 0 ? draft.discountPercent : undefined,
       discountTarget: draft.discountPercent && draft.discountPercent > 0 ? draft.discountTarget : undefined,
     };
@@ -96,6 +97,7 @@ export function MenuManagement({ items, onCreateItem, onUpdateItem, onDeleteItem
       name: editDraft.name.trim(),
       description: editDraft.description.trim(),
       image: editDraft.image.trim(),
+      badgeText: editDraft.badgeText?.trim() || undefined,
       discountPercent: editDraft.discountPercent && editDraft.discountPercent > 0 ? editDraft.discountPercent : undefined,
       discountTarget: editDraft.discountPercent && editDraft.discountPercent > 0 ? editDraft.discountTarget : undefined,
     });
@@ -388,20 +390,12 @@ function MenuFormFields({ draft, onChange }: MenuFormFieldsProps) {
 
       <label className="space-y-1 text-sm font-medium">
         Etiqueta
-        <select
-          value={draft.badgeText ?? "none"}
-          onChange={(event) =>
-            onChange((prev) => ({
-              ...prev,
-              badgeText: event.target.value === "none" ? undefined : (event.target.value as "Top" | "Nuevo"),
-            }))
-          }
+        <input
+          value={draft.badgeText ?? ""}
+          onChange={(event) => onChange((prev) => ({ ...prev, badgeText: event.target.value }))}
           className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none ring-[var(--brand)]/40 transition focus:ring-2"
-        >
-          <option value="none">Sin etiqueta</option>
-          <option value="Top">Top</option>
-          <option value="Nuevo">Nuevo</option>
-        </select>
+          placeholder="Ej: TOP, NUEVA, PICANTE"
+        />
       </label>
 
       <label className="space-y-1 text-sm font-medium">

@@ -17,8 +17,6 @@ type PromoItemRow = {
   status: "active" | "paused";
 };
 
-const EXCLUDED_PROMO_TITLES = new Set(["Lunch Week", "Noche Snotty"]);
-
 export async function fetchPromoItems(options?: { activeOnly?: boolean }): Promise<PromoAdmin[]> {
   const supabase = createSupabasePublicClient();
 
@@ -41,9 +39,7 @@ export async function fetchPromoItems(options?: { activeOnly?: boolean }): Promi
     return [];
   }
 
-  return data
-    .map(mapPromoItemRow)
-    .filter((item) => !EXCLUDED_PROMO_TITLES.has(item.title));
+  return data.map(mapPromoItemRow);
 }
 
 export function mapPromoItemRow(row: PromoItemRow): PromoAdmin {

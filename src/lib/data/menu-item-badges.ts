@@ -1,7 +1,7 @@
 import "server-only";
 import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 
-export type MenuItemBadge = "Top" | "Nuevo";
+export type MenuItemBadge = string;
 
 const MENU_ITEM_BADGES_KEY = "menu-item-badges";
 
@@ -34,10 +34,12 @@ export async function saveMenuItemBadge(itemId: string, badgeText?: MenuItemBadg
 
   const current = await fetchMenuItemBadgeMap();
 
-  if (!badgeText) {
+  const normalizedBadge = badgeText?.trim();
+
+  if (!normalizedBadge) {
     delete current[itemId];
   } else {
-    current[itemId] = badgeText;
+    current[itemId] = normalizedBadge;
   }
 
   await supabase.from("site_settings").upsert(
@@ -54,8 +56,8 @@ function sanitizeBadgeMap(value: Record<string, unknown>): Record<string, MenuIt
   const result: Record<string, MenuItemBadge> = {};
 
   for (const [itemId, badge] of Object.entries(value)) {
-    if (badge === "Top" || badge === "Nuevo") {
-      result[itemId] = badge;
+    if (typeof badge === "string" && badge.trim()) {
+      result[itemId] = badge.trim();
     }
   }
 
