@@ -14,6 +14,7 @@ import type { DeliveryRate } from "@/lib/types/delivery";
 import type { DrinkItemAdmin, MenuItemAdmin, PromoAdmin } from "@/lib/types/panel";
 import type { ModifierGroup, Product } from "@/lib/types/order";
 import { CartProvider, useCart } from "@/lib/store/cart-store";
+import { SharedCartProvider, useSharedCart } from "@/lib/store/shared-cart-store";
 import { formatStoreScheduleLabel } from "@/lib/store/store-availability";
 import { useStoreAvailability } from "@/lib/store/use-store-availability";
 import { CartDrawer } from "@/components/order/cart-drawer";
@@ -24,6 +25,7 @@ import { OrderHeader } from "@/components/order/order-header";
 import { ProductDetailModal } from "@/components/order/product-detail-modal";
 import { ProductGrid } from "@/components/order/product-grid";
 import { PromoStrip } from "@/components/order/promo-strip";
+import { SharedCartFab } from "@/components/order/shared-cart-fab";
 
 type OrderScreenProps = {
   allProducts: Product[];
@@ -41,7 +43,8 @@ function OrderScreen({
   const [selectedLocationId, setSelectedLocationId] = useState(locations[0]?.id ?? "");
   const [locationSheetOpen, setLocationSheetOpen] = useState(false);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
-  const { itemCount, addItem } = useCart();
+  const { items: localItems, itemCount, addItem } = useCart();
+  const sharedCart = useSharedCart();
   const { settings: storeSettings, state: storeAvailability } = useStoreAvailability();
   const canOrder = storeAvailability.isOpen;
   const closedMessage = "El local esta cerrado por el momento.";
@@ -66,6 +69,13 @@ function OrderScreen({
   );
 
   const recommendationProducts = useMemo(() => buildRecommendationProducts(products), [products]);
+  const visibleItemCount = useMemo(() => {
+    if (!sharedCart.isActive) {
+      return itemCount;
+    }
+
+    return sharedCart.items.reduce((total, item) => total + item.quantity, 0);
+  }, [itemCount, sharedCart.isActive, sharedCart.items]);
 
   const productsById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
   const deals = useMemo(() => buildPromoDeals(promos, products), [products, promos]);
@@ -108,7 +118,7 @@ function OrderScreen({
       <div className="site-frame relative space-y-4 py-3 md:space-y-5 md:py-5">
         <OrderHeader
           location={selectedLocation}
-          itemCount={itemCount}
+          itemCount={visibleItemCount}
           canOrder={canOrder}
           onOpenLocation={() => setLocationSheetOpen(true)}
           onOpenCart={() => setMobileCartOpen(true)}
@@ -174,9 +184,11 @@ function OrderScreen({
         </span>
         <span className="hidden sm:inline">Abrir carrito</span>
         <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-white px-1.5 text-[11px] text-[var(--brand)] sm:h-7 sm:min-w-7 sm:px-2">
-          {itemCount}
+          {visibleItemCount}
         </span>
       </button>
+
+      <SharedCartFab seedItems={localItems} />
 
       <ProductDetailModal
         key={activeModalProduct?.id ?? "no-product"}
@@ -191,6 +203,12 @@ function OrderScreen({
           if (!canOrder) {
             return;
           }
+
+          if (sharedCart.isActive) {
+            sharedCart.addItem(payload);
+            return;
+          }
+
           addItem(payload);
         }}
       />
@@ -221,11 +239,13 @@ export function OrderExperience({
 
   return (
     <CartProvider products={products}>
-      <OrderScreen
-        allProducts={products}
-        deliveryRates={initialDeliveryRates}
-        promos={initialPromos}
-      />
+      <SharedCartProvider>
+        <OrderScreen
+          allProducts={products}
+          deliveryRates={initialDeliveryRates}
+          promos={initialPromos}
+        />
+      </SharedCartProvider>
     </CartProvider>
   );
 }

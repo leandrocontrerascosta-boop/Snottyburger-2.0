@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { CheckoutModal, type CheckoutPayload } from "@/components/order/checkout-modal";
-import { findProductById, formatCurrency, getChoiceMap, getCustomizationDelta } from "@/lib/pricing/order-pricing";
+import { findProductById, formatCurrency, getCartLineTotal, getChoiceMap, getCustomizationDelta } from "@/lib/pricing/order-pricing";
 import { useCart } from "@/lib/store/cart-store";
+import { useSharedCart } from "@/lib/store/shared-cart-store";
 import type { DeliveryRate } from "@/lib/types/delivery";
 import type { CartItem, Location, Product } from "@/lib/types/order";
 import { QuantityStepper } from "@/components/order/quantity-stepper";
@@ -30,10 +31,18 @@ export function CartDrawer({
   recommendationProducts,
   onClose,
 }: CartDrawerProps) {
-  const { items, subtotal, increaseItem, decreaseItem, removeItem, addItem, clearCart } = useCart();
+  const localCart = useCart();
+  const sharedCart = useSharedCart();
   const [customerName, setCustomerName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  const items = sharedCart.isActive ? sharedCart.items : localCart.items;
+  const subtotal = useMemo(
+    () => items.reduce((total, item) => total + getCartLineTotal(item, allProducts), 0),
+    [allProducts, items],
+  );
+  const checkoutBlockedForGuest = sharedCart.isActive && !sharedCart.isOwner;
 
   const normalizedName = useMemo(() => customerName.trim(), [customerName]);
   const normalizedPhone = useMemo(() => contactPhone.replace(/\D/g, ""), [contactPhone]);
@@ -109,7 +118,14 @@ export function CartDrawer({
                           <span className="text-sm font-semibold text-[var(--foreground)] sm:text-base">{formatCurrency(lineTotal)}</span>
                           <button
                             type="button"
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => {
+                              if (sharedCart.isActive) {
+                                sharedCart.removeItem(item.id);
+                                return;
+                              }
+
+                              localCart.removeItem(item.id);
+                            }}
                             disabled={!canOrder}
                             className="text-sm text-[var(--muted)] transition hover:text-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40"
                           >
@@ -126,13 +142,25 @@ export function CartDrawer({
                             if (!canOrder) {
                               return;
                             }
-                            increaseItem(item.id);
+
+                            if (sharedCart.isActive) {
+                              sharedCart.increaseItem(item.id);
+                              return;
+                            }
+
+                            localCart.increaseItem(item.id);
                           }}
                           onDecrease={() => {
                             if (!canOrder) {
                               return;
                             }
-                            decreaseItem(item.id);
+
+                            if (sharedCart.isActive) {
+                              sharedCart.decreaseItem(item.id);
+                              return;
+                            }
+
+                            localCart.decreaseItem(item.id);
                           }}
                         />
                       </div>
@@ -153,7 +181,13 @@ export function CartDrawer({
                       if (!canOrder) {
                         return;
                       }
-                      addItem({ productId: product.id, quantity: 1, selectedChoiceIds: [] });
+
+                      if (sharedCart.isActive) {
+                        sharedCart.addItem({ productId: product.id, quantity: 1, selectedChoiceIds: [] });
+                        return;
+                      }
+
+                      localCart.addItem({ productId: product.id, quantity: 1, selectedChoiceIds: [] });
                     }}
                     disabled={!canOrder}
                     className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-white text-left transition hover:border-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-60 sm:rounded-[18px]"
@@ -216,19 +250,30 @@ export function CartDrawer({
             {!phoneIsValid && contactPhone ? (
               <p className="text-xs font-medium text-[var(--brand)] sm:text-sm">Ingresa un telefono valido de al menos 8 digitos.</p>
             ) : null}
+            {checkoutBlockedForGuest ? (
+              <p className="text-xs font-medium text-[var(--brand)] sm:text-sm">
+                Solo quien creo el pedido conjunto puede confirmar el envio final.
+              </p>
+            ) : null}
             <p className="text-xs text-[var(--muted)] sm:text-sm">Podras elegir retiro o envio en el siguiente paso.</p>
             <button
               type="button"
               onClick={() => {
-                if (!canOrder || !nameIsValid || !phoneIsValid || items.length === 0) {
+                if (!canOrder || !nameIsValid || !phoneIsValid || items.length === 0 || checkoutBlockedForGuest) {
                   return;
                 }
                 setCheckoutOpen(true);
               }}
-              disabled={!canOrder || items.length === 0 || !nameIsValid || !phoneIsValid}
+              disabled={!canOrder || items.length === 0 || !nameIsValid || !phoneIsValid || checkoutBlockedForGuest}
               className="flex w-full items-center justify-between rounded-[14px] bg-[var(--brand)] px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:bg-[#e6dfe0] disabled:text-[#9f9697] sm:rounded-[18px] sm:px-5 sm:py-4 sm:text-base"
             >
-              <span>{canOrder ? "Continuar" : "Local cerrado"}</span>
+              <span>
+                {checkoutBlockedForGuest
+                  ? "Solo creador"
+                  : canOrder
+                    ? "Continuar"
+                    : "Local cerrado"}
+              </span>
               <span>{formatCurrency(subtotal)}</span>
             </button>
           </div>
@@ -236,14 +281,21 @@ export function CartDrawer({
       </aside>
 
       <CheckoutModal
-        open={checkoutOpen && canOrder}
+        open={checkoutOpen && canOrder && !checkoutBlockedForGuest}
         customerName={normalizedName}
         contactPhone={contactPhone}
         subtotal={subtotal}
         selectedLocation={selectedLocation}
         deliveryRates={deliveryRates}
         onClose={() => setCheckoutOpen(false)}
-        onConfirm={(payload) => {
+        onConfirm={async (payload) => {
+          if (sharedCart.isActive) {
+            const finalized = await sharedCart.finalizeSession();
+            if (!finalized) {
+              return;
+            }
+          }
+
           const salesItems = buildSalesItems(allProducts, items);
 
           void fetch("/api/admin/sales", {
@@ -279,7 +331,11 @@ export function CartDrawer({
           });
 
           window.location.href = whatsappLink;
-          clearCart();
+          localCart.clearCart();
+          if (sharedCart.isActive) {
+            sharedCart.clearItems();
+            sharedCart.leaveSession();
+          }
           setCheckoutOpen(false);
         }}
       />
