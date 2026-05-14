@@ -25,6 +25,9 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
   } = useSharedCart();
   const [panelOpen, setPanelOpen] = useState(false);
   const [pinInput, setPinInput] = useState("");
+  const [createdPin, setCreatedPin] = useState<string | null>(null);
+  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const expirationLabel = useMemo(() => {
     if (!expiresAt) {
@@ -113,9 +116,12 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
               <button
                 type="button"
                 onClick={async () => {
-                  const ok = await createSession(seedItems);
-                  if (ok) {
+                  const result = await createSession(seedItems);
+                  if (result.ok) {
+                    setCreatedPin(result.pin);
+                    setCopied(false);
                     setPanelOpen(false);
+                    setPinModalOpen(true);
                   }
                 }}
                 disabled={isBusy}
@@ -161,6 +167,47 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
 
             {errorMessage ? <p className="mt-3 text-xs font-medium text-[var(--brand)]">{errorMessage}</p> : null}
             <p className="mt-2 text-[11px] text-[var(--muted)]">Maximo 3 intentos fallidos por IP cada 1 hora.</p>
+          </div>
+        </div>
+      ) : null}
+
+      {pinModalOpen && createdPin ? (
+        <div className="fixed inset-0 z-40 bg-[rgba(18,21,26,0.5)]" onClick={() => setPinModalOpen(false)}>
+          <div
+            className="absolute left-1/2 top-1/2 w-[min(92vw,360px)] -translate-x-1/2 -translate-y-1/2 rounded-[22px] border border-[var(--line)] bg-white p-5 shadow-[0_24px_60px_rgba(24,18,15,0.24)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-[var(--foreground)]">Tu compra conjunta esta lista</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">Comparte este PIN con tus amigos para que se unan.</p>
+
+            <div className="mt-4 rounded-[16px] border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-center">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">PIN</p>
+              <p className="mt-1 text-3xl font-semibold tracking-[0.35em] text-[var(--foreground)]">{createdPin}</p>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(createdPin);
+                    setCopied(true);
+                  } catch {
+                    setCopied(false);
+                  }
+                }}
+                className="rounded-[12px] border border-[var(--line)] px-3 py-2 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
+              >
+                {copied ? "PIN copiado" : "Copiar PIN"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPinModalOpen(false)}
+                className="rounded-[12px] bg-[var(--brand)] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[var(--brand-dark)]"
+              >
+                Listo
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

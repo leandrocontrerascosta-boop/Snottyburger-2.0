@@ -145,7 +145,13 @@ export async function createSharedCartSession(seedItems: CartItem[]) {
     .single<SharedCartSessionRow>();
 
   if (sessionError || !sessionRow) {
-    return { error: "No se pudo crear la sesion compartida" } as const;
+    if (sessionError?.code === "42P01") {
+      return {
+        error: "No se pudo crear la sesion compartida porque faltan tablas en Supabase. Ejecuta scripts/supabase-shared-cart.sql.",
+      } as const;
+    }
+
+    return { error: `No se pudo crear la sesion compartida: ${sessionError?.message ?? "error desconocido"}` } as const;
   }
 
   const items = normalizeCartItems(seedItems);
@@ -161,7 +167,15 @@ export async function createSharedCartSession(seedItems: CartItem[]) {
 
     const { error: itemsError } = await supabase.from("shared_cart_items").insert(payload);
     if (itemsError) {
-      return { error: "Se creo la sesion pero no se pudieron guardar los items" } as const;
+      if (itemsError.code === "42P01") {
+        return {
+          error: "Se creo la sesion, pero faltan tablas en Supabase para guardar items. Ejecuta scripts/supabase-shared-cart.sql.",
+        } as const;
+      }
+
+      return {
+        error: `Se creo la sesion pero no se pudieron guardar los items: ${itemsError.message}`,
+      } as const;
     }
   }
 

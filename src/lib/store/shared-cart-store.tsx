@@ -26,7 +26,7 @@ type SharedCartContextValue = {
   floatingCtaDismissed: boolean;
   dismissFloatingCta: () => void;
   resetFloatingCta: () => void;
-  createSession: (seedItems: CartItem[]) => Promise<boolean>;
+  createSession: (seedItems: CartItem[]) => Promise<{ ok: true; pin: string; expiresAt: string } | { ok: false }>;
   joinSession: (pin: string) => Promise<boolean>;
   leaveSession: () => void;
   addItem: (payload: { productId: string; quantity: number; selectedChoiceIds: string[]; note?: string }) => void;
@@ -43,41 +43,51 @@ const POLL_INTERVAL_MS = 3000;
 
 const SharedCartContext = createContext<SharedCartContextValue | null>(null);
 
+function getStoredSharedSession(): SharedSessionSnapshot | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as SharedSessionSnapshot;
+    if (!parsed.sessionId || !parsed.pin || !parsed.expiresAt || !parsed.role) {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      return null;
+    }
+
+    if (new Date(parsed.expiresAt).getTime() <= Date.now()) {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    return null;
+  }
+}
+
+function getStoredCtaDismissed(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem(CTA_STORAGE_KEY) === "1";
+}
+
 export function SharedCartProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [session, setSession] = useState<SharedSessionSnapshot | null>(null);
+  const [session, setSession] = useState<SharedSessionSnapshot | null>(() => getStoredSharedSession());
   const [items, setItems] = useState<CartItem[]>([]);
   const [isBusy, setIsBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [floatingCtaDismissed, setFloatingCtaDismissed] = useState(false);
+  const [floatingCtaDismissed, setFloatingCtaDismissed] = useState(() => getStoredCtaDismissed());
 
   const isSupported = true;
-
-  useEffect(() => {
-    const dismissed = window.localStorage.getItem(CTA_STORAGE_KEY);
-    setFloatingCtaDismissed(dismissed === "1");
-
-    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
-    if (!raw) {
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as SharedSessionSnapshot;
-      if (!parsed.sessionId || !parsed.pin || !parsed.expiresAt || !parsed.role) {
-        window.localStorage.removeItem(SESSION_STORAGE_KEY);
-        return;
-      }
-
-      if (new Date(parsed.expiresAt).getTime() <= Date.now()) {
-        window.localStorage.removeItem(SESSION_STORAGE_KEY);
-        return;
-      }
-
-      setSession(parsed);
-    } catch {
-      window.localStorage.removeItem(SESSION_STORAGE_KEY);
-    }
-  }, []);
 
   useEffect(() => {
     if (!session) {
@@ -90,7 +100,6 @@ export function SharedCartProvider({ children }: Readonly<{ children: React.Reac
 
   useEffect(() => {
     if (!session) {
-      setItems([]);
       return;
     }
 
@@ -241,9 +250,9 @@ export function SharedCartProvider({ children }: Readonly<{ children: React.Reac
             items: CartItem[];
           };
 
-          if (!response.ok || !payload.sessionId || !payload.ownerToken) {
+          if (!response.ok || !payload.sessionId || !payload.ownerToken || !payload.pin || !payload.expiresAt) {
             setErrorMessage(payload.error ?? "No se pudo crear la compra compartida.");
-            return false;
+            return { ok: false };
           }
 
           setSession({
@@ -255,10 +264,14 @@ export function SharedCartProvider({ children }: Readonly<{ children: React.Reac
           });
           setItems(payload.items ?? []);
           setErrorMessage(null);
-          return true;
+          return {
+            ok: true,
+            pin: payload.pin,
+            expiresAt: payload.expiresAt,
+          };
         } catch {
           setErrorMessage("No se pudo crear la compra compartida.");
-          return false;
+          return { ok: false };
         } finally {
           setIsBusy(false);
         }
