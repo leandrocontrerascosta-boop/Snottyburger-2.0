@@ -97,6 +97,7 @@ export function OffersManagement({ items, onSaveOffer, onRemoveOffer }: OffersMa
                 {item.name}
               </option>
             ))}
+            <option value="*">Todas</option>
           </select>
         </label>
 
@@ -131,6 +132,10 @@ export function OffersManagement({ items, onSaveOffer, onRemoveOffer }: OffersMa
         {selectedItem ? (
           <div className="md:col-span-4 rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-xs text-[var(--muted)]">
             Preview: {selectedItem.name} · {buildPreviewLabel(selectedItem, draft.discountPercent, draft.discountTarget)}
+          </div>
+        ) : draft.itemId === "*" ? (
+          <div className="md:col-span-4 rounded-xl border border-[var(--line)] bg-[var(--surface-strong)] px-3 py-2 text-xs text-[var(--muted)]">
+            Preview: Se aplicará {draft.discountPercent}% de descuento a todos los burgers {draft.discountTarget === "both" ? "(en ambos tamaños)" : draft.discountTarget === "double" ? "(solo doble)" : "(solo simple)"}
           </div>
         ) : null}
 
@@ -168,11 +173,11 @@ export function OffersManagement({ items, onSaveOffer, onRemoveOffer }: OffersMa
           <tbody>
             {offers.map((item) => (
               <tr key={item.id} className="border-b border-[var(--line)] last:border-b-0">
-                <td className="px-3 py-3 font-semibold">{item.name}</td>
+                <td className="px-3 py-3 font-semibold">{item.id === "*" ? "Todas" : item.name}</td>
                 <td className="px-3 py-3">{item.discountPercent}%</td>
                 <td className="px-3 py-3">{targetLabel(item.discountTarget)}</td>
                 <td className="px-3 py-3 text-xs text-[var(--muted)]">
-                  {buildPreviewLabel(item, item.discountPercent ?? 0, item.discountTarget ?? "simple")}
+                  {item.id === "*" ? `Descuento aplicado a todos los burgers` : buildPreviewLabel(item, item.discountPercent ?? 0, item.discountTarget ?? "simple")}
                 </td>
                 <td className="px-3 py-3">
                   <div className="flex flex-wrap gap-2">
@@ -206,9 +211,9 @@ export function OffersManagement({ items, onSaveOffer, onRemoveOffer }: OffersMa
       <div className="space-y-3 md:hidden">
         {offers.map((item) => (
           <article key={item.id} className="rounded-2xl border border-[var(--line)] bg-white/70 p-4">
-            <h3 className="text-base font-semibold">{item.name}</h3>
+            <h3 className="text-base font-semibold">{item.id === "*" ? "Todas" : item.name}</h3>
             <p className="mt-1 text-sm text-[var(--muted)]">{item.discountPercent}% en {targetLabel(item.discountTarget)}</p>
-            <p className="mt-2 text-xs text-[var(--muted)]">{buildPreviewLabel(item, item.discountPercent ?? 0, item.discountTarget ?? "simple")}</p>
+            <p className="mt-2 text-xs text-[var(--muted)]">{item.id === "*" ? `Descuento aplicado a todos los burgers` : buildPreviewLabel(item, item.discountPercent ?? 0, item.discountTarget ?? "simple")}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"

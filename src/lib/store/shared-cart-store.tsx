@@ -24,11 +24,13 @@ type SharedCartContextValue = {
   isBusy: boolean;
   errorMessage: string | null;
   floatingCtaDismissed: boolean;
+  closedSession: SharedSessionSnapshot | null;
   dismissFloatingCta: () => void;
   resetFloatingCta: () => void;
   createSession: (seedItems: CartItem[]) => Promise<{ ok: true; pin: string; expiresAt: string } | { ok: false }>;
   joinSession: (pin: string) => Promise<boolean>;
   leaveSession: () => void;
+  recoverClosedSession: () => void;
   addItem: (payload: { productId: string; quantity: number; selectedChoiceIds: string[]; note?: string }) => void;
   increaseItem: (itemId: string) => void;
   decreaseItem: (itemId: string) => void;
@@ -38,6 +40,7 @@ type SharedCartContextValue = {
 };
 
 const SESSION_STORAGE_KEY = "snottyburger-shared-session";
+const CLOSED_SESSION_STORAGE_KEY = "snottyburger-shared-session-closed";
 const CTA_STORAGE_KEY = "snottyburger-shared-cta-dismissed";
 const POLL_INTERVAL_MS = 3000;
 
@@ -72,6 +75,30 @@ function getStoredSharedSession(): SharedSessionSnapshot | null {
   }
 }
 
+function getStoredClosedSession(): SharedSessionSnapshot | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(CLOSED_SESSION_STORAGE_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as SharedSessionSnapshot;
+    if (new Date(parsed.expiresAt).getTime() <= Date.now()) {
+      window.localStorage.removeItem(CLOSED_SESSION_STORAGE_KEY);
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    window.localStorage.removeItem(CLOSED_SESSION_STORAGE_KEY);
+    return null;
+  }
+}
+
 function getStoredCtaDismissed(): boolean {
   if (typeof window === "undefined") {
     return false;
@@ -86,6 +113,7 @@ export function SharedCartProvider({ children }: Readonly<{ children: React.Reac
   const [isBusy, setIsBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [floatingCtaDismissed, setFloatingCtaDismissed] = useState(() => getStoredCtaDismissed());
+  const [closedSessionAvailable, setClosedSessionAvailable] = useState(() => Boolean(getStoredClosedSession()));
 
   const isSupported = true;
 
@@ -211,9 +239,36 @@ export function SharedCartProvider({ children }: Readonly<{ children: React.Reac
     };
 
     const leaveSession = () => {
+      if (session) {
+        window.localStorage.setItem(CLOSED_SESSION_STORAGE_KEY, JSON.stringify(session));
+        setClosedSessionAvailable(true);
+      }
       setSession(null);
       setItems([]);
       setErrorMessage(null);
+    };
+
+    const recoverClosedSession = () => {
+      const raw = window.localStorage.getItem(CLOSED_SESSION_STORAGE_KEY);
+      if (!raw) {
+        return;
+      }
+
+      try {
+        const recovered = JSON.parse(raw) as SharedSessionSnapshot;
+        if (new Date(recovered.expiresAt).getTime() <= Date.now()) {
+          window.localStorage.removeItem(CLOSED_SESSION_STORAGE_KEY);
+          setClosedSessionAvailable(false);
+          return;
+        }
+
+        setSession(recovered);
+        setClosedSessionAvailable(false);
+        window.localStorage.removeItem(CLOSED_SESSION_STORAGE_KEY);
+      } catch {
+        window.localStorage.removeItem(CLOSED_SESSION_STORAGE_KEY);
+        setClosedSessionAvailable(false);
+      }
     };
 
     return {
@@ -226,6 +281,7 @@ export function SharedCartProvider({ children }: Readonly<{ children: React.Reac
       isBusy,
       errorMessage,
       floatingCtaDismissed,
+      closedSession: closedSessionAvailable && !session ? getStoredClosedSession() : null,
       dismissFloatingCta,
       resetFloatingCta,
       createSession: async (seedItems) => {
@@ -319,6 +375,7 @@ export function SharedCartProvider({ children }: Readonly<{ children: React.Reac
         }
       },
       leaveSession,
+      recoverClosedSession,
       addItem: (payload) => {
         if (!session) {
           return;
@@ -429,7 +486,7 @@ export function SharedCartProvider({ children }: Readonly<{ children: React.Reac
         return true;
       },
     };
-  }, [errorMessage, floatingCtaDismissed, isBusy, isSupported, items, session]);
+  }, [closedSessionAvailable, errorMessage, floatingCtaDismissed, isBusy, isSupported, items, session]);
 
   return <SharedCartContext.Provider value={value}>{children}</SharedCartContext.Provider>;
 }

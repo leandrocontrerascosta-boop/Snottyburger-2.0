@@ -17,10 +17,12 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
     isBusy,
     errorMessage,
     floatingCtaDismissed,
+    closedSession,
     dismissFloatingCta,
     createSession,
     joinSession,
     leaveSession,
+    recoverClosedSession,
   } = useSharedCart();
   const [panelOpen, setPanelOpen] = useState(false);
   const [pinInput, setPinInput] = useState("");
@@ -68,22 +70,35 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
       ) : null}
 
       {!isActive ? (
-        <div className="fixed bottom-24 left-3 z-20 flex items-center gap-2 sm:bottom-24 sm:left-4 lg:bottom-6">
-          <button
-            type="button"
-            onClick={() => setPanelOpen((value) => !value)}
-            className="rounded-full bg-[var(--brand)] px-3 py-2 text-[11px] font-semibold text-white shadow-[0_14px_30px_rgba(191,36,63,0.3)] transition hover:bg-[var(--brand-dark)] sm:px-4 sm:text-xs"
-          >
-            Arma tu pedido con amigos
-          </button>
-          <button
-            type="button"
-            aria-label="Ocultar acceso a compra con amigos"
-            onClick={dismissFloatingCta}
-            className="h-8 w-8 rounded-full border border-[var(--line)] bg-white text-[var(--muted)] transition hover:text-[var(--foreground)]"
-          >
-            ×
-          </button>
+        <div className="fixed bottom-24 left-3 z-20 flex flex-col items-start gap-2 sm:bottom-24 sm:left-4 lg:bottom-6">
+          {closedSession ? (
+            <button
+              type="button"
+              onClick={() => {
+                recoverClosedSession();
+              }}
+              className="rounded-full bg-[var(--brand)] px-3 py-2 text-[11px] font-semibold text-white shadow-[0_14px_30px_rgba(191,36,63,0.3)] transition hover:bg-[var(--brand-dark)] sm:px-4 sm:text-xs"
+            >
+              Recuperar carrito cerrado
+            </button>
+          ) : null}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPanelOpen((value) => !value)}
+              className="rounded-full bg-[var(--brand)] px-3 py-2 text-[11px] font-semibold text-white shadow-[0_14px_30px_rgba(191,36,63,0.3)] transition hover:bg-[var(--brand-dark)] sm:px-4 sm:text-xs"
+            >
+              Arma tu pedido con amigos
+            </button>
+            <button
+              type="button"
+              aria-label="Ocultar acceso a compra con amigos"
+              onClick={dismissFloatingCta}
+              className="h-8 w-8 rounded-full border border-[var(--line)] bg-white text-[var(--muted)] transition hover:text-[var(--foreground)]"
+            >
+              ×
+            </button>
+          </div>
         </div>
       ) : null}
 
