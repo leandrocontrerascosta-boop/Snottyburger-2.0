@@ -41,10 +41,6 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
     }).format(new Date(expiresAt));
   }, [expiresAt]);
 
-  if (floatingCtaDismissed && !isActive) {
-    return null;
-  }
-
   return (
     <>
       {isActive ? (
@@ -94,7 +90,7 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
               type="button"
               aria-label="Ocultar acceso a compra con amigos"
               onClick={dismissFloatingCta}
-              className="h-8 w-8 rounded-full border border-[var(--line)] bg-white text-[var(--muted)] transition hover:text-[var(--foreground)]"
+              className="hidden h-8 w-8 rounded-full border border-[var(--line)] bg-white text-[var(--muted)] transition hover:text-[var(--foreground)] lg:block"
             >
               ×
             </button>
