@@ -18,7 +18,6 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
     errorMessage,
     floatingCtaDismissed,
     dismissFloatingCta,
-    resetFloatingCta,
     createSession,
     joinSession,
     leaveSession,
@@ -41,21 +40,13 @@ export function SharedCartFab({ seedItems }: SharedCartFabProps) {
   }, [expiresAt]);
 
   if (floatingCtaDismissed && !isActive) {
-    return (
-      <button
-        type="button"
-        onClick={resetFloatingCta}
-        className="fixed bottom-24 left-3 z-20 rounded-full border border-[var(--line)] bg-white/90 px-3 py-2 text-[11px] font-semibold text-[var(--foreground)] shadow-[0_10px_24px_rgba(24,18,15,0.12)] backdrop-blur sm:bottom-24 sm:left-4 sm:text-xs lg:bottom-6"
-      >
-        Mostrar compra con amigos
-      </button>
-    );
+    return null;
   }
 
   return (
     <>
       {isActive ? (
-        <div className="fixed bottom-24 left-3 z-20 flex max-w-[min(320px,calc(100vw-24px))] items-center gap-2 rounded-[16px] border border-[var(--line)] bg-white px-3 py-2 text-xs text-[var(--foreground)] shadow-[0_14px_32px_rgba(24,18,15,0.12)] sm:bottom-24 sm:left-4 lg:bottom-6">
+        <div className="fixed top-20 left-3 z-20 flex max-w-[min(320px,calc(100vw-24px))] items-center gap-2 rounded-[16px] border border-[var(--line)] bg-white px-3 py-2 text-xs text-[var(--foreground)] shadow-[0_14px_32px_rgba(24,18,15,0.12)] sm:top-24 sm:left-4 md:bottom-24 md:top-auto lg:bottom-6">
           <div>
             <p className="font-semibold">Pedido con amigos activo</p>
             <p className="text-[11px] text-[var(--muted)]">
