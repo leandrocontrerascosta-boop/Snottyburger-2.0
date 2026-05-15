@@ -1,8 +1,33 @@
 import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
+import { getClientIp, checkRateLimit } from "@/lib/security/rate-limit";
 import type { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 30 validations per IP per minute
+    const ip = getClientIp(request);
+    const { allowed, remaining, resetAt } = checkRateLimit(
+      `promo-validate:${ip}`,
+      30,
+      60000
+    );
+
+    if (!allowed) {
+      return Response.json(
+        {
+          error: "Demasiadas solicitudes. Intenta de nuevo en un minuto.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((resetAt || 0) / 1000)),
+            "X-RateLimit-Limit": "30",
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
+    }
+
     const { code } = (await request.json()) as { code?: string };
 
     if (!code || typeof code !== "string" || code.trim().length === 0) {
@@ -26,20 +51,33 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !data) {
-      return Response.json({ error: "Código de promoción no válido" }, { status: 404 });
+      return Response.json(
+        { error: "Código de promoción no válido" },
+        { status: 404 }
+      );
     }
 
     // Check if code has reached max uses
     if (data.max_uses && data.current_uses >= data.max_uses) {
-      return Response.json({ error: "Código de promoción expirado" }, { status: 410 });
+      return Response.json(
+        { error: "Código de promoción expirado" },
+        { status: 410 }
+      );
     }
 
-    return Response.json({
-      ok: true,
-      code: data.code,
-      discountPercent: data.discount_percent,
-      applyTo: data.apply_to,
-    });
+    return Response.json(
+      {
+        ok: true,
+        code: data.code,
+        discountPercent: data.discount_percent,
+        applyTo: data.apply_to,
+      },
+      {
+        headers: {
+          "X-RateLimit-Remaining": String(remaining),
+        },
+      }
+    );
   } catch (err) {
     console.error("Promo code validation error:", err);
     return Response.json(
