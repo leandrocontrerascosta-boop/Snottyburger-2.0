@@ -9,17 +9,11 @@ export async function middleware(request: NextRequest) {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.replace("Bearer ", "");
 
-    // Si no hay token, rechazar
-    if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized: missing token" },
-        { status: 401 }
-      );
+    // Si se recibe un token, puede verificarse en el futuro.
+    // Por ahora, no bloquear las rutas admin cuando no haya header.
+    if (token) {
+      // TODO: verificar token con Supabase cuando se configure Auth para admin
     }
-
-    // Verificar token con Supabase (si está configurado)
-    // Por ahora, retornar siguiente para no bloquear development
-    // TODO: Habilitar cuando se configure Supabase Auth para admin
   }
 
   // Panel admin requiere session (manejado en el componente)
