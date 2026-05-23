@@ -13,6 +13,7 @@ import { MetricsCenter } from "@/components/panel/metrics-center";
 import { MenuManagement, type MenuItemDraft } from "@/components/panel/menu-management";
 import { OffersManagement } from "@/components/panel/offers-management";
 import { PromoManagement, type PromoDraft } from "@/components/panel/promo-management";
+import { PromoCodesManagement } from "@/components/panel/promo-codes-management";
 import { SalesCenter } from "@/components/panel/sales-center";
 import { StoreStatusControl } from "@/components/panel/store-status-control";
 import { StoryEditor } from "@/components/panel/story-editor";
@@ -27,6 +28,7 @@ const tabs: Array<{ id: PanelTab; label: string }> = [
   { id: "drinks", label: "Bebidas" },
   { id: "story", label: "Nuestra Historia" },
   { id: "promos", label: "Promos" },
+  { id: "codigos", label: "Codigos" },
   { id: "sales", label: "Ventas" },
   { id: "metrics", label: "Metricas" },
   { id: "delivery", label: "Delivery" },
@@ -63,6 +65,17 @@ export function PanelShell({
   const [drinkItems, setDrinkItems] = useState(initialDrinkItems);
   const [story, setStory] = useState(initialStory);
   const [promos, setPromos] = useState(initialPromos);
+  const [promoCodes, setPromoCodes] = useState<{
+    id: string;
+    code: string;
+    description?: string | null;
+    discountPercent: number;
+    applyTo: "burgers" | "total";
+    maxUses: number | null;
+    currentUses: number;
+    isActive: boolean;
+    createdAt: string;
+  }[]>([]);
   const [salesRecords] = useState(initialSalesRecords);
   const [salesFilters, setSalesFilters] = useState(initialSalesFilters);
   const [deliveryRates, setDeliveryRates] = useState(initialDeliveryRates);
@@ -92,6 +105,30 @@ export function PanelShell({
       window.clearTimeout(timeoutId);
     };
   }, [deliveryRates]);
+
+  // Load promo codes when the tab is activated
+  useEffect(() => {
+    let mounted = true;
+    async function loadCodes() {
+      try {
+        const res = await fetch("/api/admin/promo-codes");
+        if (!res.ok) return;
+        const payload = (await res.json()) as { codes: any[] };
+        if (!mounted) return;
+        setPromoCodes(payload.codes || []);
+      } catch (err) {
+        console.error("No se pudieron cargar los codigos", err);
+      }
+    }
+
+    if (activeTab === "codigos") {
+      void loadCodes();
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [activeTab]);
 
   return (
     <main className="page-shell px-3 py-4 sm:px-4 sm:py-6 md:px-8 md:py-8">
@@ -501,6 +538,53 @@ export function PanelShell({
                 setPromos((prev) => prev.filter((promo) => promo.id !== promoId));
               } catch (error) {
                 console.error("No se pudo eliminar la promo", error);
+              }
+            }}
+          />
+        ) : null}
+
+        {activeTab === "codigos" ? (
+          <PromoCodesManagement
+            codes={promoCodes}
+            onSaveCode={async (draft) => {
+              try {
+                const response = await fetch("/api/admin/promo-codes", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(draft),
+                });
+
+                if (!response.ok) return;
+
+                const payload = (await response.json()) as { code: any };
+                setPromoCodes((prev) => [payload.code, ...prev]);
+              } catch (error) {
+                console.error("No se pudo crear el codigo", error);
+              }
+            }}
+            onToggleCode={async (codeId, isActive) => {
+              try {
+                const response = await fetch(`/api/admin/promo-codes/${codeId}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ isActive }),
+                });
+
+                if (!response.ok) return;
+
+                const payload = (await response.json()) as { code: any };
+                setPromoCodes((prev) => prev.map((c) => (c.id === codeId ? payload.code : c)));
+              } catch (error) {
+                console.error("No se pudo togglear el codigo", error);
+              }
+            }}
+            onDeleteCode={async (codeId) => {
+              try {
+                const response = await fetch(`/api/admin/promo-codes/${codeId}`, { method: "DELETE" });
+                if (!response.ok) return;
+                setPromoCodes((prev) => prev.filter((c) => c.id !== codeId));
+              } catch (error) {
+                console.error("No se pudo eliminar el codigo", error);
               }
             }}
           />
