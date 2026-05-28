@@ -1,13 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 
-export async function PATCH(request: Request, { params }: { params: { codeId: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ codeId: string }> },
+) {
   const supabase = createSupabaseServiceClient();
   if (!supabase) {
     return NextResponse.json({ error: "Faltan las credenciales de Supabase en el entorno" }, { status: 503 });
   }
 
-  const { codeId } = params;
+  const { codeId } = await context.params;
   const body = (await request.json()) as { isActive?: boolean };
 
   if (typeof body.isActive === "undefined") {
@@ -40,13 +43,16 @@ export async function PATCH(request: Request, { params }: { params: { codeId: st
   return NextResponse.json({ code: mapped });
 }
 
-export async function DELETE(request: Request, { params }: { params: { codeId: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ codeId: string }> },
+) {
   const supabase = createSupabaseServiceClient();
   if (!supabase) {
     return NextResponse.json({ error: "Faltan las credenciales de Supabase en el entorno" }, { status: 503 });
   }
 
-  const { codeId } = params;
+  const { codeId } = await context.params;
 
   const { error } = await supabase.from("promo_codes").delete().eq("id", codeId);
   if (error) {

@@ -4,15 +4,16 @@ import { useState } from "react";
 
 type PromoCodeInputProps = {
   onApplyCode: (code: string) => Promise<void>;
-  appliedCode: string | null;
+  appliedCode?: string;
   discountInfo?: {
     code: string;
     discountPercent: number;
     applyTo: "burgers" | "total";
   } | null;
+  onClear?: () => void;
 };
 
-export function PromoCodeInput({ onApplyCode, appliedCode, discountInfo }: PromoCodeInputProps) {
+export function PromoCodeInput({ onApplyCode, appliedCode, discountInfo, onClear }: PromoCodeInputProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +52,7 @@ export function PromoCodeInput({ onApplyCode, appliedCode, discountInfo }: Promo
             onClick={() => {
               setInput("");
               setError(null);
+              onClear?.();
             }}
             className="text-lg text-green-700 transition hover:text-green-900"
           >

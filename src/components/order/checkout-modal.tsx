@@ -6,6 +6,7 @@ import { catamarcaMapCenter } from "@/lib/mocks/delivery-data";
 import { fetchRouteSummary, getDeliveryPrice, type DeliveryRouteSummary } from "@/lib/pricing/delivery-pricing";
 import { formatCurrency } from "@/lib/pricing/order-pricing";
 import { SkeletonBlock } from "@/components/ui/skeleton-block";
+import { PromoCodeInput } from "@/components/order/promo-code-input";
 import type { Coordinates, DeliveryAddress, DeliveryRate } from "@/lib/types/delivery";
 import type { Location } from "@/lib/types/order";
 
@@ -24,6 +25,7 @@ type CheckoutModalProps = {
   customerName: string;
   contactPhone: string;
   subtotal: number;
+  discountAmount?: number;
   selectedLocation: Location;
   deliveryRates: DeliveryRate[];
   onClose: () => void;
@@ -57,11 +59,22 @@ export function CheckoutModal({
   customerName,
   contactPhone,
   subtotal,
+  discountAmount = 0,
   selectedLocation,
   deliveryRates,
   onClose,
   onConfirm,
-}: CheckoutModalProps) {
+  // promo handlers (optional) will be passed from parent
+  appliedCode,
+  discountInfo,
+  onApplyCode,
+  onClearPromo,
+}: CheckoutModalProps & {
+  appliedCode?: string | null;
+  discountInfo?: { code: string; discountPercent: number; applyTo: "burgers" | "total" } | null;
+  onApplyCode?: (code: string) => Promise<void>;
+  onClearPromo?: () => void;
+}) {
   const [fulfillmentMethod, setFulfillmentMethod] = useState<FulfillmentMethod | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<CheckoutPaymentMethod | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -88,7 +101,8 @@ export function CheckoutModal({
     return getDeliveryPrice(distanceKm, deliveryRates);
   }, [deliveryRates, distanceKm, fulfillmentMethod]);
 
-  const total = subtotal + (fulfillmentMethod === "delivery" ? deliveryPrice ?? 0 : 0);
+  const orderSubtotal = Math.max(subtotal - discountAmount, 0);
+  const total = orderSubtotal + (fulfillmentMethod === "delivery" ? deliveryPrice ?? 0 : 0);
 
   const parsedCashPaymentAmount = Number(cashPaymentAmount);
   const hasCashAmount = cashPaymentAmount.trim().length > 0;
@@ -565,6 +579,20 @@ export function CheckoutModal({
 
           <aside className="border-t border-[var(--line)] bg-[var(--surface-strong)]/60 p-5 lg:border-l lg:border-t-0 md:p-6">
             <div className="space-y-4">
+              {paymentStepComplete ? (
+                <div className="space-y-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Código de descuento</p>
+                  <PromoCodeInput
+                    appliedCode={appliedCode ?? undefined}
+                    discountInfo={discountInfo ?? undefined}
+                    onApplyCode={async (c) => {
+                      if (!onApplyCode) return;
+                      await onApplyCode(c);
+                    }}
+                    onClear={() => onClearPromo?.()}
+                  />
+                </div>
+              ) : null}
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--brand)]">Resumen</p>
                 <h3 className="mt-2 text-xl font-semibold tracking-[-0.03em]">Pedido listo para confirmar</h3>
@@ -597,6 +625,12 @@ export function CheckoutModal({
                   <span>Subtotal</span>
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
+                {discountAmount > 0 ? (
+                  <div className="flex items-center justify-between text-sm text-[var(--brand)]">
+                    <span>Descuento</span>
+                    <span>-{formatCurrency(discountAmount)}</span>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between">
                   <span>Delivery</span>
                   <span>

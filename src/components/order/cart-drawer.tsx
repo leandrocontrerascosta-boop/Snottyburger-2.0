@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { CheckoutModal, type CheckoutPayload } from "@/components/order/checkout-modal";
+import { PromoCodeInput } from "@/components/order/promo-code-input";
 import { findProductById, formatCurrency, getCartLineTotal, getChoiceMap, getCustomizationDelta } from "@/lib/pricing/order-pricing";
 import { useCart } from "@/lib/store/cart-store";
 import { useSharedCart } from "@/lib/store/shared-cart-store";
@@ -36,18 +37,77 @@ export function CartDrawer({
   const [customerName, setCustomerName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [appliedCode, setAppliedCode] = useState<string | null>(null);
+  const [discountInfo, setDiscountInfo] = useState<{
+    code: string;
+    discountPercent: number;
+    applyTo: "burgers" | "total";
+  } | null>(null);
 
   const items = sharedCart.isActive ? sharedCart.items : localCart.items;
   const subtotal = useMemo(
     () => items.reduce((total, item) => total + getCartLineTotal(item, allProducts), 0),
     [allProducts, items],
   );
+  const burgerSubtotal = useMemo(
+    () =>
+      items.reduce((total, item) => {
+        const product = findProductById(allProducts, item.productId);
+
+        if (!product || product.categoryId !== "burgers") {
+          return total;
+        }
+
+        return total + getCartLineTotal(item, allProducts);
+      }, 0),
+    [allProducts, items],
+  );
+  const discountAmount = useMemo(() => {
+    if (!discountInfo) {
+      return 0;
+    }
+
+    const baseAmount = discountInfo.applyTo === "burgers" ? burgerSubtotal : subtotal;
+    return Math.round((baseAmount * discountInfo.discountPercent) / 100);
+  }, [discountInfo, burgerSubtotal, subtotal]);
+  const orderTotal = useMemo(() => Math.max(subtotal - discountAmount, 0), [discountAmount, subtotal]);
   const checkoutBlockedForGuest = sharedCart.isActive && !sharedCart.isOwner;
 
   const normalizedName = useMemo(() => customerName.trim(), [customerName]);
   const normalizedPhone = useMemo(() => contactPhone.replace(/\D/g, ""), [contactPhone]);
   const nameIsValid = normalizedName.length >= 2;
   const phoneIsValid = normalizedPhone.length >= 8;
+
+  async function handleApplyPromoCode(code: string) {
+    const trimmed = code.trim();
+
+    if (trimmed.length === 0) {
+      throw new Error("Ingresa un código de descuento.");
+    }
+
+    const response = await fetch("/api/promo-codes/validate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code: trimmed }),
+    });
+
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error(payload.error || "Código inválido.");
+    }
+
+    setAppliedCode(payload.code);
+    setDiscountInfo({
+      code: payload.code,
+      discountPercent: payload.discountPercent,
+      applyTo: payload.applyTo,
+    });
+
+    return payload;
+  }
 
   if (!open) {
     return null;
@@ -206,6 +266,27 @@ export function CartDrawer({
                 ))}
               </div>
             </section>
+
+            <section className="space-y-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--muted)]">Código de descuento</p>
+              <PromoCodeInput
+                appliedCode={appliedCode ?? undefined}
+                discountInfo={discountInfo ?? undefined}
+                onApplyCode={handleApplyPromoCode}
+                onClear={() => {
+                  setAppliedCode(null);
+                  setDiscountInfo(null);
+                }}
+              />
+              {discountAmount > 0 ? (
+                <div className="rounded-[18px] border border-[var(--line)] bg-white px-4 py-3 text-sm text-[var(--foreground)]">
+                  <div className="flex items-center justify-between">
+                    <span>Descuento aplicado</span>
+                    <span className="font-semibold text-[var(--brand)]">-{formatCurrency(discountAmount)}</span>
+                  </div>
+                </div>
+              ) : null}
+            </section>
           </div>
         </div>
 
@@ -219,9 +300,15 @@ export function CartDrawer({
               <span>Subtotal</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
+            {discountAmount > 0 ? (
+              <div className="flex items-center justify-between text-sm text-[var(--brand)]">
+                <span>Descuento</span>
+                <span>-{formatCurrency(discountAmount)}</span>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between border-t border-[var(--line)] pt-2 text-sm font-semibold text-[var(--foreground)] sm:pt-3 sm:text-base">
               <span>Total del pedido</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatCurrency(orderTotal)}</span>
             </div>
           </div>
 
@@ -274,7 +361,7 @@ export function CartDrawer({
                     ? "Continuar"
                     : "Local cerrado"}
               </span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatCurrency(orderTotal)}</span>
             </button>
           </div>
         </div>
@@ -285,14 +372,34 @@ export function CartDrawer({
         customerName={normalizedName}
         contactPhone={contactPhone}
         subtotal={subtotal}
+        discountAmount={discountAmount}
         selectedLocation={selectedLocation}
         deliveryRates={deliveryRates}
+        appliedCode={appliedCode}
+        discountInfo={discountInfo}
+        onApplyCode={handleApplyPromoCode}
+        onClearPromo={() => {
+          setAppliedCode(null);
+          setDiscountInfo(null);
+        }}
         onClose={() => setCheckoutOpen(false)}
         onConfirm={async (payload) => {
           if (sharedCart.isActive) {
             const finalized = await sharedCart.finalizeSession();
             if (!finalized) {
               return;
+            }
+          }
+          // If a promo code was applied, call the apply endpoint to increment uses
+          if (appliedCode) {
+            try {
+              await fetch("/api/promo-codes/apply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: appliedCode }),
+              });
+            } catch (err) {
+              console.error("No se pudo aplicar el codigo antes de confirmar:", err);
             }
           }
 

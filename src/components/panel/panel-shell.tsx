@@ -19,7 +19,7 @@ import { StoreStatusControl } from "@/components/panel/store-status-control";
 import { StoryEditor } from "@/components/panel/story-editor";
 import { useStoreAvailability } from "@/lib/store/use-store-availability";
 
-type PanelTab = "menu" | "offers" | "extras" | "drinks" | "story" | "promos" | "sales" | "metrics" | "delivery";
+type PanelTab = "menu" | "offers" | "extras" | "drinks" | "story" | "promos" | "codigos" | "sales" | "metrics" | "delivery";
 
 const tabs: Array<{ id: PanelTab; label: string }> = [
   { id: "menu", label: "Menu" },
@@ -68,7 +68,7 @@ export function PanelShell({
   const [promoCodes, setPromoCodes] = useState<{
     id: string;
     code: string;
-    description?: string | null;
+    description: string;
     discountPercent: number;
     applyTo: "burgers" | "total";
     maxUses: number | null;

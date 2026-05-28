@@ -26,7 +26,7 @@ export async function GET() {
   const mapped = (data || []).map((row: any) => ({
     id: row.id,
     code: row.code,
-    description: row.description,
+    description: row.description ?? "",
     discountPercent: row.discount_percent,
     applyTo: row.apply_to,
     isActive: row.is_active,
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
   const mapped = {
     id: data.id,
     code: data.code,
-    description: data.description,
+    description: data.description ?? "",
     discountPercent: data.discount_percent,
     applyTo: data.apply_to,
     isActive: data.is_active,
