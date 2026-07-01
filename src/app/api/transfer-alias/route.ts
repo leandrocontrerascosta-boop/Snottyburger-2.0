@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { createSupabasePublicClient } from "@/lib/supabase/public-client";
+import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 
 export async function GET() {
-  const supabase = createSupabasePublicClient();
+  const supabase = createSupabaseServiceClient();
 
   if (!supabase) {
     return NextResponse.json({ alias: "Emicarrizo73" });
