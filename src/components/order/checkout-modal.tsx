@@ -18,8 +18,6 @@ const DeliveryMapCanvas = dynamic(
   },
 );
 
-const TRANSFER_ALIAS = "Emicarrizo73";
-
 type CheckoutModalProps = {
   open: boolean;
   customerName: string;
@@ -89,6 +87,7 @@ export function CheckoutModal({
   const [transferFeedback, setTransferFeedback] = useState<string | null>(null);
   const [routeSummary, setRouteSummary] = useState<DeliveryRouteSummary | null>(null);
   const [cashPaymentAmount, setCashPaymentAmount] = useState<string>("");
+  const [transferAlias, setTransferAlias] = useState("Emicarrizo73");
   const searchAbortRef = useRef<AbortController | null>(null);
 
   const distanceKm = useMemo(() => routeSummary?.distanceKm ?? null, [routeSummary]);
@@ -214,7 +213,7 @@ export function CheckoutModal({
 
   async function copyTransferAlias() {
     try {
-      await navigator.clipboard.writeText(TRANSFER_ALIAS);
+      await navigator.clipboard.writeText(transferAlias);
       setCopySuccess(true);
       setTransferFeedback("Alias copiado al portapapeles.");
       window.setTimeout(() => setCopySuccess(false), 1800);
@@ -266,6 +265,21 @@ export function CheckoutModal({
     setSearchQuery(result.display_name);
     setAddressError(null);
   }
+
+  useEffect(() => {
+    async function loadTransferAlias() {
+      try {
+        const res = await fetch("/api/transfer-alias");
+        if (res.ok) {
+          const data = (await res.json()) as { alias: string };
+          setTransferAlias(data.alias);
+        }
+      } catch {
+        // fallback to hardcoded alias
+      }
+    }
+    void loadTransferAlias();
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -558,7 +572,7 @@ export function CheckoutModal({
                     <p className="text-sm text-[var(--muted)]">Alias para transferencia</p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <code className="rounded-[10px] border border-[var(--line)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)]">
-                        {TRANSFER_ALIAS}
+                        {transferAlias}
                       </code>
                       <button
                         type="button"

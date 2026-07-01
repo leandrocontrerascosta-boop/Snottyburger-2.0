@@ -7,7 +7,7 @@ import {
 import { DeliveryRatesManagement } from "@/components/panel/delivery-rates-management";
 import type { DeliveryRate } from "@/lib/types/delivery";
 import { ExtrasManagement, type ExtraDraft } from "@/components/panel/extras-management";
-import type { DrinkItemAdmin, EntityStatus, ExtraItemAdmin, MenuItemAdmin, PromoAdmin, SaleRecord, StoryContent } from "@/lib/types/panel";
+import type { DrinkItemAdmin, ExtraItemAdmin, MenuItemAdmin, PromoAdmin, SaleRecord, StoryContent } from "@/lib/types/panel";
 import { DrinkManagement, type DrinkDraft } from "@/components/panel/drink-management";
 import { MetricsCenter } from "@/components/panel/metrics-center";
 import { MenuManagement, type MenuItemDraft } from "@/components/panel/menu-management";
@@ -17,9 +17,10 @@ import { PromoCodesManagement } from "@/components/panel/promo-codes-management"
 import { SalesCenter } from "@/components/panel/sales-center";
 import { StoreStatusControl } from "@/components/panel/store-status-control";
 import { StoryEditor } from "@/components/panel/story-editor";
+import { TransferAliasManagement } from "@/components/panel/transfer-alias-management";
 import { useStoreAvailability } from "@/lib/store/use-store-availability";
 
-type PanelTab = "menu" | "offers" | "extras" | "drinks" | "story" | "promos" | "codigos" | "sales" | "metrics" | "delivery";
+type PanelTab = "menu" | "offers" | "extras" | "drinks" | "story" | "promos" | "codigos" | "sales" | "metrics" | "delivery" | "transfer-alias";
 
 const tabs: Array<{ id: PanelTab; label: string }> = [
   { id: "menu", label: "Menu" },
@@ -32,6 +33,7 @@ const tabs: Array<{ id: PanelTab; label: string }> = [
   { id: "sales", label: "Ventas" },
   { id: "metrics", label: "Metricas" },
   { id: "delivery", label: "Delivery" },
+  { id: "transfer-alias", label: "Alias" },
 ];
 
 type PanelShellProps = {
@@ -42,6 +44,8 @@ type PanelShellProps = {
   initialPromos: PromoAdmin[];
   initialSalesRecords: SaleRecord[];
   initialStory: StoryContent;
+  initialTransferAlias: string;
+  initialTransferAliasUpdatedAt: string;
 };
 
 export function PanelShell({
@@ -52,6 +56,8 @@ export function PanelShell({
   initialPromos,
   initialSalesRecords,
   initialStory,
+  initialTransferAlias,
+  initialTransferAliasUpdatedAt,
 }: PanelShellProps) {
   useEffect(() => {
     document.body.style.overflow = "";
@@ -79,6 +85,8 @@ export function PanelShell({
   const [salesRecords] = useState(initialSalesRecords);
   const [salesFilters, setSalesFilters] = useState(initialSalesFilters);
   const [deliveryRates, setDeliveryRates] = useState(initialDeliveryRates);
+  const [transferAlias, setTransferAlias] = useState(initialTransferAlias);
+  const [transferAliasUpdatedAt, setTransferAliasUpdatedAt] = useState(initialTransferAliasUpdatedAt);
   const skipNextDeliverySaveRef = useRef(true);
 
   useEffect(() => {
@@ -160,12 +168,32 @@ export function PanelShell({
         />
 
         <nav className="no-scrollbar overflow-x-auto rounded-[22px] border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-[0_14px_30px_rgba(31,22,18,0.08)] sm:rounded-2xl sm:p-2">
-          <ul className="flex min-w-max gap-2">
+          <ul className="flex min-w-max gap-2" role="tablist" aria-label="Secciones del panel">
             {tabs.map((tab) => (
-              <li key={tab.id}>
+              <li key={tab.id} role="none">
                 <button
                   type="button"
+                  role="tab"
+                  id={`panel-tab-${tab.id}`}
+                  aria-selected={tab.id === activeTab}
+                  aria-controls={`panel-panel-${tab.id}`}
+                  tabIndex={tab.id === activeTab ? 0 : -1}
                   onClick={() => setActiveTab(tab.id)}
+                  onKeyDown={(event) => {
+                    const currentIndex = tabs.findIndex((t) => t.id === activeTab);
+                    let nextIndex: number | null = null;
+                    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                      nextIndex = (currentIndex + 1) % tabs.length;
+                    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+                    }
+                    if (nextIndex !== null) {
+                      event.preventDefault();
+                      setActiveTab(tabs[nextIndex].id);
+                      const nextButton = document.getElementById(`panel-tab-${tabs[nextIndex].id}`);
+                      nextButton?.focus();
+                    }
+                  }}
                   className={`rounded-full px-3 py-2 text-[13px] font-semibold whitespace-nowrap transition sm:px-4 sm:text-sm ${
                     tab.id === activeTab
                       ? "bg-[var(--brand)] text-white"
@@ -180,7 +208,8 @@ export function PanelShell({
         </nav>
 
         {activeTab === "menu" ? (
-          <MenuManagement
+          <div role="tabpanel" id="panel-panel-menu" aria-labelledby="panel-tab-menu">
+            <MenuManagement
             items={menuItems}
             onCreateItem={async (draft) => {
               try {
@@ -265,10 +294,12 @@ export function PanelShell({
               }
             }}
           />
+          </div>
         ) : null}
 
         {activeTab === "offers" ? (
-          <OffersManagement
+          <div role="tabpanel" id="panel-panel-offers" aria-labelledby="panel-tab-offers">
+            <OffersManagement
             items={menuItems}
             onSaveOffer={async (draft) => {
               try {
@@ -325,9 +356,11 @@ export function PanelShell({
               }
             }}
           />
+          </div>
         ) : null}
 
         {activeTab === "extras" ? (
+          <div role="tabpanel" id="panel-panel-extras" aria-labelledby="panel-tab-extras">
           <ExtrasManagement
             extras={extraItems}
             onCreateExtra={async (draft: ExtraDraft) => {
@@ -391,9 +424,11 @@ export function PanelShell({
               }
             }}
           />
+          </div>
         ) : null}
 
         {activeTab === "drinks" ? (
+          <div role="tabpanel" id="panel-panel-drinks" aria-labelledby="panel-tab-drinks">
           <DrinkManagement
             drinks={drinkItems}
             onCreateDrink={async (draft: DrinkDraft) => {
@@ -457,9 +492,11 @@ export function PanelShell({
               }
             }}
           />
+          </div>
         ) : null}
 
         {activeTab === "story" ? (
+          <div role="tabpanel" id="panel-panel-story" aria-labelledby="panel-tab-story">
           <StoryEditor
             story={story}
             onSaveStory={async (nextStory) => {
@@ -475,9 +512,11 @@ export function PanelShell({
               }
             }}
           />
+          </div>
         ) : null}
 
         {activeTab === "promos" ? (
+          <div role="tabpanel" id="panel-panel-promos" aria-labelledby="panel-tab-promos">
           <PromoManagement
             promos={promos}
             onCreatePromo={async (draft: PromoDraft) => {
@@ -541,9 +580,11 @@ export function PanelShell({
               }
             }}
           />
+          </div>
         ) : null}
 
         {activeTab === "codigos" ? (
+          <div role="tabpanel" id="panel-panel-codigos" aria-labelledby="panel-tab-codigos">
           <PromoCodesManagement
             codes={promoCodes}
             onSaveCode={async (draft) => {
@@ -588,38 +629,53 @@ export function PanelShell({
               }
             }}
           />
+          </div>
         ) : null}
 
         {activeTab === "sales" ? (
-          <SalesCenter records={salesRecords} filters={salesFilters} onFiltersChange={setSalesFilters} />
+          <div role="tabpanel" id="panel-panel-sales" aria-labelledby="panel-tab-sales">
+            <SalesCenter records={salesRecords} filters={salesFilters} onFiltersChange={setSalesFilters} />
+          </div>
         ) : null}
 
-        {activeTab === "metrics" ? <MetricsCenter records={salesRecords} /> : null}
+        {activeTab === "metrics" ? (
+          <div role="tabpanel" id="panel-panel-metrics" aria-labelledby="panel-tab-metrics">
+            <MetricsCenter records={salesRecords} />
+          </div>
+        ) : null}
 
         {activeTab === "delivery" ? (
-          <DeliveryRatesManagement rates={deliveryRates} onChangeRates={setDeliveryRates} />
+          <div role="tabpanel" id="panel-panel-delivery" aria-labelledby="panel-tab-delivery">
+            <DeliveryRatesManagement rates={deliveryRates} onChangeRates={setDeliveryRates} />
+          </div>
+        ) : null}
+
+        {activeTab === "transfer-alias" ? (
+          <div role="tabpanel" id="panel-panel-transfer-alias" aria-labelledby="panel-tab-transfer-alias">
+            <TransferAliasManagement
+              alias={transferAlias}
+              updatedAt={transferAliasUpdatedAt}
+              onSaveAlias={async (nextAlias) => {
+                setTransferAlias(nextAlias);
+                setTransferAliasUpdatedAt(new Date().toISOString());
+                try {
+                  await fetch("/api/admin/transfer-alias", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ alias: nextAlias }),
+                  });
+                } catch (error) {
+                  console.error("No se pudo guardar el alias", error);
+                }
+              }}
+            />
+          </div>
         ) : null}
       </div>
     </main>
   );
 }
 
-type StatusEntity = { id: string; status: EntityStatus };
 
-function toggleStatus<T extends StatusEntity>(
-  setter: Dispatch<SetStateAction<T[]>>,
-  entityId: string,
-) {
-  setter((previous) =>
-    previous.map((item) => {
-      if (item.id !== entityId) {
-        return item;
-      }
 
-      return {
-        ...item,
-        status: item.status === "active" ? "paused" : "active",
-      };
-    }),
-  );
-}
+

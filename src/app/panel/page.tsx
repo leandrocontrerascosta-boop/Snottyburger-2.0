@@ -9,9 +9,10 @@ import { fetchMenuItems } from "@/lib/data/menu-items";
 import { fetchPromoItems } from "@/lib/data/promo-items";
 import { fetchSalesRecords } from "@/lib/data/sales-records";
 import { fetchStory } from "@/lib/data/story";
+import { fetchTransferAlias } from "@/lib/data/transfer-alias";
 
 export default async function PanelPage() {
-  const [menuItems, extraItems, drinkItems, promoItems, salesRecords, deliveryRates, story] = await Promise.all([
+  const [menuItems, extraItems, drinkItems, promoItems, salesRecords, deliveryRates, story, transferAliasData] = await Promise.all([
     fetchMenuItems(),
     fetchExtraItems(),
     fetchDrinkItems(),
@@ -19,6 +20,7 @@ export default async function PanelPage() {
     fetchSalesRecords(),
     fetchDeliveryRates(),
     fetchStory(),
+    fetchTransferAlias(),
   ]);
 
   return (
@@ -30,6 +32,8 @@ export default async function PanelPage() {
       initialSalesRecords={salesRecords}
       initialDeliveryRates={deliveryRates}
       initialStory={{ id: "story-main", ...story }}
+      initialTransferAlias={transferAliasData.alias}
+      initialTransferAliasUpdatedAt={transferAliasData.updatedAt}
     />
   );
 }
