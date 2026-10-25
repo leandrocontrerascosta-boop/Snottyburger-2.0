@@ -1,6 +1,6 @@
 import "server-only";
 import { products as fallbackProducts } from "@/lib/mocks/order-data";
-import { createSupabasePublicClient } from "@/lib/supabase/public-client";
+import { createSupabaseServiceClient } from "@/lib/supabase/service-client";
 import type { DrinkItemAdmin } from "@/lib/types/panel";
 
 type DrinkItemRow = {
@@ -27,7 +27,11 @@ function getFallbackDrinkItems(): DrinkItemAdmin[] {
 
 export async function fetchDrinkItems(options?: { activeOnly?: boolean }): Promise<DrinkItemAdmin[]> {
   const fallback = options?.activeOnly ? getFallbackDrinkItems().filter((item) => item.status === "active") : getFallbackDrinkItems();
-  const supabase = createSupabasePublicClient();
+  // Service client (server-only): el panel admin debe ver TODAS las bebidas,
+  // incluso las pausadas. Con el cliente anonimo, RLS ocultaba las pausadas,
+  // la lista quedaba vacia y el panel mostraba mocks con ids falsos
+  // ("pepsi-can") que rompian editar/pausar/eliminar (500 uuid).
+  const supabase = createSupabaseServiceClient();
 
   if (!supabase) {
     return fallback;
@@ -45,10 +49,14 @@ export async function fetchDrinkItems(options?: { activeOnly?: boolean }): Promi
   const { data, error } = await query;
 
   if (error || !data) {
+    console.error("No se pudieron cargar las bebidas, usando fallback", error);
     return fallback;
   }
 
-  const mapped = data.map((row) => ({
+  // Si la query salio bien pero no hay filas (ej: todas pausadas),
+  // devolver vacio es correcto: NO usar mocks, porque tienen ids
+  // falsos que no existen en la DB y rompen el panel.
+  return data.map((row) => ({
     id: row.id,
     name: row.name,
     description: row.description,
@@ -56,6 +64,4 @@ export async function fetchDrinkItems(options?: { activeOnly?: boolean }): Promi
     price: row.price,
     status: row.status,
   }));
-
-  return mapped.length > 0 ? mapped : fallback;
 }
