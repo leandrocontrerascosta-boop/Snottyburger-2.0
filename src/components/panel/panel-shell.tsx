@@ -439,12 +439,18 @@ export function PanelShell({
                   body: JSON.stringify(draft),
                 });
 
-                if (!response.ok) return;
+                if (!response.ok) {
+                  const payload = (await response.json().catch(() => null)) as { error?: string; detail?: string } | null;
+                  console.error("No se pudo crear la bebida", response.status, payload);
+                  return false;
+                }
 
                 const payload = (await response.json()) as { item: DrinkItemAdmin };
                 setDrinkItems((prev) => [payload.item, ...prev]);
+                return true;
               } catch (error) {
                 console.error("No se pudo crear la bebida", error);
+                return false;
               }
             }}
             onUpdateDrink={async (drinkId, draft) => {
@@ -455,12 +461,18 @@ export function PanelShell({
                   body: JSON.stringify(draft),
                 });
 
-                if (!response.ok) return;
+                if (!response.ok) {
+                  const payload = (await response.json().catch(() => null)) as { error?: string; detail?: string } | null;
+                  console.error("No se pudo actualizar la bebida", response.status, payload);
+                  return false;
+                }
 
                 const payload = (await response.json()) as { item: DrinkItemAdmin };
                 setDrinkItems((prev) => prev.map((item) => (item.id === drinkId ? payload.item : item)));
+                return true;
               } catch (error) {
                 console.error("No se pudo actualizar la bebida", error);
+                return false;
               }
             }}
             onDeleteDrink={async (drinkId) => {

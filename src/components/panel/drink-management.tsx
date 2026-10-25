@@ -15,8 +15,8 @@ export type DrinkDraft = {
 
 type DrinkManagementProps = {
   drinks: DrinkItemAdmin[];
-  onCreateDrink: (draft: DrinkDraft) => void;
-  onUpdateDrink: (drinkId: string, draft: DrinkDraft) => void;
+  onCreateDrink: (draft: DrinkDraft) => Promise<boolean>;
+  onUpdateDrink: (drinkId: string, draft: DrinkDraft) => Promise<boolean>;
   onDeleteDrink: (drinkId: string) => void;
   onToggleDrinkStatus: (drinkId: string) => void;
 };
@@ -33,28 +33,36 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDrink, setEditingDrink] = useState<DrinkItemAdmin | null>(null);
   const [editDraft, setEditDraft] = useState<DrinkDraft>(emptyDraft);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const activeCount = useMemo(() => drinks.filter((item) => item.status === "active").length, [drinks]);
 
-  function submitCreate(event: FormEvent<HTMLFormElement>) {
+  async function submitCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!draft.name.trim() || !draft.description.trim() || !draft.image.trim()) {
       return;
     }
 
-    onCreateDrink({
+    setCreateError(null);
+    const ok = await onCreateDrink({
       ...draft,
       name: draft.name.trim(),
       description: draft.description.trim(),
       image: draft.image.trim(),
     });
+    if (!ok) {
+      setCreateError("No se pudo guardar la bebida. Revisá el precio e intentá de nuevo.");
+      return;
+    }
     setDraft(emptyDraft);
     setIsCreateOpen(false);
   }
 
   function openEditModal(drink: DrinkItemAdmin) {
     setEditingDrink(drink);
+    setEditError(null);
     setEditDraft({
       name: drink.name,
       description: drink.description,
@@ -66,21 +74,28 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
   function closeEditModal() {
     setEditingDrink(null);
     setEditDraft(emptyDraft);
+    setEditError(null);
   }
 
-  function submitEdit(event: FormEvent<HTMLFormElement>) {
+  async function submitEdit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!editingDrink || !editDraft.name.trim() || !editDraft.description.trim() || !editDraft.image.trim()) {
       return;
     }
 
-    onUpdateDrink(editingDrink.id, {
+    setEditError(null);
+    const ok = await onUpdateDrink(editingDrink.id, {
       ...editDraft,
       name: editDraft.name.trim(),
       description: editDraft.description.trim(),
       image: editDraft.image.trim(),
     });
+
+    if (!ok) {
+      setEditError("No se pudo guardar los cambios. Revisá el precio e intentá de nuevo.");
+      return;
+    }
 
     closeEditModal();
   }
@@ -132,6 +147,9 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
                 <button type="submit" className="rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-dark)]">Guardar bebida</button>
                 <button type="button" onClick={() => { setIsCreateOpen(false); setDraft(emptyDraft); }} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--surface-strong)]">Cancelar</button>
               </div>
+              {createError ? (
+                <p className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{createError}</p>
+              ) : null}
             </form>
           </div>
         </div>
@@ -234,6 +252,9 @@ export function DrinkManagement({ drinks, onCreateDrink, onUpdateDrink, onDelete
                 <button type="submit" className="rounded-full bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--brand-dark)]">Guardar cambios</button>
                 <button type="button" onClick={closeEditModal} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm font-semibold transition hover:bg-[var(--surface-strong)]">Cancelar</button>
               </div>
+              {editError ? (
+                <p className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{editError}</p>
+              ) : null}
             </form>
           </div>
         </div>
@@ -262,7 +283,15 @@ function DrinkFormFields({ draft, onChange }: DrinkFormFieldsProps) {
 
       <label className="space-y-1 text-sm font-medium">
         Precio
-        <input type="number" min={0} value={draft.price} onChange={(event) => onChange((prev) => ({ ...prev, price: Number(event.target.value) || 0 }))} className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none ring-[var(--brand)]/40 transition focus:ring-2" />
+        <input type="number" min={0} step={1} inputMode="numeric" value={Number.isFinite(draft.price) ? draft.price : 0} onChange={(event) => {
+          const raw = event.target.value;
+          if (raw === "") {
+            onChange((prev) => ({ ...prev, price: 0 }));
+            return;
+          }
+          const parsed = Number(raw);
+          onChange((prev) => ({ ...prev, price: Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : prev.price }));
+        }} className="w-full rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm outline-none ring-[var(--brand)]/40 transition focus:ring-2" />
       </label>
     </>
   );
